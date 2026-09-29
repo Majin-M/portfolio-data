@@ -8,8 +8,7 @@ export function SiteFooter() {
     <footer className="mt-24 border-t border-trait">
       <Conteneur className="flex flex-col gap-3 py-8 sm:flex-row sm:items-baseline sm:justify-between">
         <p className="label max-w-xl normal-case tracking-normal">
-          Site statique alimenté par les exports des pipelines. Aucun chiffre inventé : chaque valeur vient d&apos;une source
-          citée ou d&apos;une exécution datée.
+          Site statique alimenté par les exports des pipelines.
         </p>
         <p className="label flex shrink-0 items-center gap-2">
           <Link href="/mentions-legales" className="hover:text-encre">
