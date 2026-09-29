@@ -33,7 +33,6 @@ export default function APropos() {
       <Conteneur className="pt-10 sm:pt-16">
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-trait-fort pb-3">
           <p className="label !text-accent">À propos · fiche de compétences</p>
-          <p className="label">Calculée à partir des projets publiés</p>
         </div>
 
         <div className="mt-8 grid items-start gap-6 lg:grid-cols-12">

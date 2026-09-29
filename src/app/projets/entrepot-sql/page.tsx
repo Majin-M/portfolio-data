@@ -4,6 +4,7 @@ import { ChaineMedallion } from "@/components/chaine-medallion";
 import { Conteneur } from "@/components/conteneur";
 import { BlocCode, Chapitre, Depliable, Figure, GrandsChiffres, Mesures, Ouverture, Statut } from "@/components/edition";
 import { Espace } from "@/components/espace";
+import { Logo } from "@/components/logos";
 import { LignageSql } from "@/components/lignage-sql";
 import { Revele } from "@/components/mouvement";
 import {
@@ -585,7 +586,8 @@ export default function PageEntrepotSql() {
               </Depliable>
             </div>
 
-            <a href={DEPOT} className="ui mt-12 inline-block !text-encre hover:!text-accent" rel="noopener">
+            <a href={DEPOT} className="ui mt-12 inline-flex items-center gap-2 !text-encre hover:!text-accent" rel="noopener">
+              <Logo nom="GitHub" className="size-4" />
               Tout le détail sur GitHub ↗
             </a>
           </section>

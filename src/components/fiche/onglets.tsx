@@ -79,9 +79,17 @@ function Profil() {
   const { axes, max } = radar();
   return (
     <div className="grid items-center gap-10 md:grid-cols-5">
-      <Declencheur mode="dessin" className="md:col-span-3">
-        <Radar axes={axes} max={max} />
-      </Declencheur>
+      <div className="md:col-span-3">
+        <p className="inline-flex items-center gap-2 border border-accent px-3 py-1.5 font-donnees text-xs tracking-[0.08em] text-accent uppercase">
+          Calculé à partir des {max} projets publiés
+        </p>
+        <Declencheur mode="dessin">
+          <Radar axes={axes} max={max} />
+        </Declencheur>
+        <p className="text-center text-sm text-encre-3">
+          Chaque anneau compte un projet : au bord, l&apos;étape est couverte par les {max}.
+        </p>
+      </div>
       <div className="space-y-5 md:col-span-2">
         <p className="text-lg leading-snug text-encre-2">
           Les étapes du métier, pas des technologies. Chaque axe compte les projets publiés qui couvrent vraiment l&apos;étape,

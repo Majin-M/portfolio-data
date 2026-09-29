@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Conteneur } from "@/components/conteneur";
 import { Espace } from "@/components/espace";
+import { Logo } from "@/components/logos";
 import { Revele } from "@/components/mouvement";
 import { VignetteCourbe } from "@/components/vignette-courbe";
 import { lireDiversite } from "@/lib/prenoms";
@@ -79,8 +80,9 @@ export default function PageProjets() {
                     </Link>
                   )}
                   {p.depot && (
-                    <a href={p.depot} className="ui" rel="noopener">
-                      Dépôt ↗
+                    <a href={p.depot} className="ui inline-flex items-center gap-2" rel="noopener">
+                      <Logo nom="GitHub" className="size-4" />
+                      Dépôt GitHub ↗
                     </a>
                   )}
                   {p.statut === "en cours" && <span className="ui">En cours : la page arrive avec le projet.</span>}

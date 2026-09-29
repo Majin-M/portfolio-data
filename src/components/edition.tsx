@@ -4,6 +4,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Conteneur } from "@/components/conteneur";
+import { Logo } from "@/components/logos";
 import { Compteur, Revele } from "@/components/mouvement";
 
 type Lien = { label: string; href: string };
@@ -74,7 +75,8 @@ export function Ouverture({
                 <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
                   {liens.map((l) => (
                     <li key={l.href}>
-                      <a href={l.href} className="ui !text-encre hover:!text-accent" rel="noopener">
+                      <a href={l.href} className="ui inline-flex items-center gap-2 !text-encre hover:!text-accent" rel="noopener">
+                        {l.href.includes("github.com") && <Logo nom="GitHub" className="size-4" />}
                         {l.label} ↗
                       </a>
                     </li>
