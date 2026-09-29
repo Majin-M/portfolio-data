@@ -1,0 +1,680 @@
+@import "tailwindcss";
+
+/*
+  Jetons de couleur. Thème sombre par défaut : le noir est la scène, la
+  lumière n'apparaît que là où il faut regarder. Le thème clair n'est appliqué
+  que sur demande (bouton du header, attribut data-theme="light" sur <html>).
+
+  Les couleurs des séries (filles / garçons) ont été validées avec le script
+  validate_palette.js du skill dataviz : séparation daltonisme, contraste et
+  saturation, sur le fond sombre #0b0d0e et sur le fond crème #f3efe6.
+  Palette provisoire : à revoir après le benchmark.
+*/
+:root {
+  color-scheme: dark;
+  --fond: #0b0d0e;
+  --fond-2: #121517;
+  --encre: #e8e5dc;
+  --encre-2: #a9a69c;
+  --encre-3: #8a877f;
+  --trait: #23272a;
+  --trait-fort: #3a3f42;
+  --accent: #d4703f;
+  --lueur: rgb(212 112 63 / 0.55);
+  --halo: rgb(212 112 63 / 0.1);
+  --serie-f: #d4703f;
+  --serie-m: #4f8fd9;
+  /* Métaux des couches Medallion (projet entrepôt SQL) */
+  --bronze: #cd7f32;
+  --argent: #c7ccd1;
+  --or: #e0b44c;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --fond: #f3efe6;
+  --fond-2: #eae5d9;
+  --encre: #141414;
+  --encre-2: #4a4843;
+  --encre-3: #5f5b54;
+  --trait: #ddd7ca;
+  --trait-fort: #b9b2a3;
+  --accent: #a9522a;
+  --lueur: rgb(169 82 42 / 0.3);
+  --halo: rgb(169 82 42 / 0.08);
+  --serie-f: #b0522a;
+  --serie-m: #2f6db3;
+  --bronze: #8a5424;
+  --argent: #5f6670;
+  --or: #7a5a0e;
+}
+
+/* Scène toujours sombre, quel que soit le thème (l'hologramme de l'accueil). */
+.scene-sombre {
+  color-scheme: dark;
+  --fond: #0b0d0e;
+  --fond-2: #121517;
+  --encre: #e8e5dc;
+  --encre-2: #a9a69c;
+  --encre-3: #8a877f;
+  --trait: #23272a;
+  --trait-fort: #3a3f42;
+  --accent: #d4703f;
+  --lueur: rgb(212 112 63 / 0.55);
+  --halo: rgb(212 112 63 / 0.1);
+}
+
+@theme inline {
+  --color-fond: var(--fond);
+  --color-fond-2: var(--fond-2);
+  --color-encre: var(--encre);
+  --color-encre-2: var(--encre-2);
+  --color-encre-3: var(--encre-3);
+  --color-trait: var(--trait);
+  --color-trait-fort: var(--trait-fort);
+  --color-accent: var(--accent);
+  --color-serie-f: var(--serie-f);
+  --color-serie-m: var(--serie-m);
+  --color-bronze: var(--bronze);
+  --color-argent: var(--argent);
+  --color-or: var(--or);
+  --font-texte: var(--police-texte), Georgia, "Times New Roman", serif;
+  --font-donnees: var(--police-donnees), ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+html {
+  background: var(--fond);
+  color: var(--encre);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--fond);
+  color: var(--encre);
+  font-family: var(--font-texte);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  font-optical-sizing: auto;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--fond);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Monospace en capitales : réservée aux données et aux repères
+   (numéros de figure, couches, horodatages, sources). */
+.label {
+  font-family: var(--font-donnees);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--encre-3);
+}
+
+/* Texte d'interface : navigation, boutons, commandes. */
+.ui {
+  font-family: var(--font-texte);
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--encre-2);
+  transition: color 150ms;
+}
+.ui:hover {
+  color: var(--encre);
+}
+
+/* Liens dans le texte courant. */
+.lien {
+  color: var(--encre);
+  text-decoration-line: underline;
+  text-decoration-color: var(--trait-fort);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 150ms;
+}
+.lien:hover {
+  text-decoration-color: var(--accent);
+}
+
+.prose-projet p + p {
+  margin-top: 1em;
+}
+.prose-projet strong {
+  font-weight: 600;
+}
+.prose-projet code,
+.code-inline {
+  font-family: var(--font-donnees);
+  font-size: 0.85em;
+  padding: 0.05em 0.3em;
+  background: var(--fond-2);
+  border: 1px solid var(--trait);
+  border-radius: 3px;
+}
+
+/* Tableaux de données : chiffres alignés. */
+.tableau {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.tableau th {
+  font-family: var(--font-donnees);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--encre-3);
+  text-align: left;
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  border-bottom: 1px solid var(--trait-fort);
+  white-space: nowrap;
+}
+.tableau td {
+  padding: 0.45rem 0.75rem 0.45rem 0;
+  border-bottom: 1px solid var(--trait);
+  vertical-align: top;
+}
+.tableau .num {
+  font-family: var(--font-donnees);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.tableau th.num {
+  text-align: right;
+}
+.tableau .mono {
+  font-family: var(--font-donnees);
+  font-size: 0.8rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Lumière
+   --------------------------------------------------------------------------- */
+
+/* Halo discret derrière le sujet de l'écran. */
+.halo {
+  background: radial-gradient(ellipse 60% 55% at 50% 60%, var(--halo), transparent 70%);
+}
+
+/* Trait lumineux. */
+.lueur {
+  filter: drop-shadow(0 0 5px var(--lueur));
+}
+
+/* Grille d'instrument, estompée vers le bas. */
+.grille-fond {
+  background-image:
+    linear-gradient(to right, var(--trait) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--trait) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black, transparent 80%);
+}
+
+/* Point de statut : pouls lent. */
+.pouls {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 var(--lueur);
+  animation: pouls 2.4s ease-out infinite;
+}
+
+@keyframes pouls {
+  0% {
+    box-shadow: 0 0 0 0 var(--lueur);
+  }
+  70% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Mouvement. Tout est piloté par deux attributs :
+   - data-js sur <html>, posé par le script du <head> : sans JavaScript, tout
+     s'affiche dans son état final ;
+   - data-visible, posé quand l'élément entre dans l'écran.
+   --------------------------------------------------------------------------- */
+
+/* Apparition au défilement. */
+[data-revele] {
+  transition:
+    opacity 900ms ease,
+    transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: var(--delai, 0ms);
+}
+:root[data-js] [data-revele]:not([data-visible]) {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+/* Tracés qui se dessinent (path avec pathLength="1"). */
+.trace {
+  stroke-dasharray: 1;
+}
+:root[data-js] [data-dessin]:not([data-visible]) .trace {
+  stroke-dashoffset: 1;
+}
+:root[data-js] [data-dessin][data-visible] .trace {
+  animation: tracer var(--duree-trace, 1800ms) cubic-bezier(0.3, 0.7, 0.2, 1) both;
+  animation-delay: var(--delai, 0ms);
+}
+
+/* Éléments qui s'allument après le tracé (points, étiquettes, particules). */
+:root[data-js] [data-dessin]:not([data-visible]) .apres-trace {
+  opacity: 0;
+}
+:root[data-js] [data-dessin][data-visible] .apres-trace {
+  animation: allumer 700ms ease both;
+  animation-delay: var(--delai-apres, 1400ms);
+}
+
+/* Nœuds d'un schéma qui s'allument l'un après l'autre. */
+:root[data-js] [data-dessin]:not([data-visible]) .allume {
+  opacity: 0.12;
+}
+:root[data-js] [data-dessin][data-visible] .allume {
+  animation: allumer 800ms ease both;
+  animation-delay: var(--delai, 0ms);
+}
+
+/* Compteurs : masqués jusqu'au début du décompte. */
+:root[data-js] [data-compteur]:not([data-pret]) {
+  visibility: hidden;
+}
+
+@keyframes tracer {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes allumer {
+  from {
+    opacity: 0.12;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Transitions entre espaces (View Transitions, via <ViewTransition> de React)
+   --------------------------------------------------------------------------- */
+
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(site-header) {
+  display: none;
+}
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+
+/* Plonger dans un projet ; remonter vers la liste. */
+::view-transition-old(.plonger) {
+  animation: 280ms ease-in both plonger-sortie;
+}
+::view-transition-new(.plonger) {
+  animation: 520ms cubic-bezier(0.2, 0.8, 0.2, 1) 160ms both plonger-entree;
+}
+::view-transition-old(.remonter) {
+  animation: 240ms ease-in both remonter-sortie;
+}
+::view-transition-new(.remonter) {
+  animation: 480ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms both remonter-entree;
+}
+
+@keyframes plonger-sortie {
+  to {
+    opacity: 0;
+    transform: scale(1.05);
+    filter: blur(6px);
+  }
+}
+@keyframes plonger-entree {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+    filter: blur(6px);
+  }
+}
+@keyframes remonter-sortie {
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+    filter: blur(4px);
+  }
+}
+@keyframes remonter-entree {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+    filter: blur(4px);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Mouvement réduit : états finaux, sans animation ni particules.
+   --------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+  :root[data-js] [data-revele]:not([data-visible]) {
+    opacity: 1;
+    transform: none;
+  }
+  .particule {
+    display: none;
+  }
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Médailles (couches Medallion)
+   --------------------------------------------------------------------------- */
+
+.medaille .reflet {
+  transform: translateX(-90px);
+}
+:root[data-js] [data-dessin][data-visible] .medaille .reflet {
+  animation: reflet 1600ms cubic-bezier(0.3, 0.7, 0.2, 1) both;
+  animation-delay: var(--delai, 0ms);
+}
+.medaille:hover .reflet {
+  animation: reflet 1100ms cubic-bezier(0.3, 0.7, 0.2, 1) both;
+}
+@keyframes reflet {
+  from {
+    transform: translateX(-90px);
+  }
+  to {
+    transform: translateX(260px);
+  }
+}
+
+/* Flux de données entre deux couches : un trait qui passe d'un métal à l'autre. */
+.flux-couche {
+  position: relative;
+  overflow: hidden;
+}
+.flux-couche .goutte {
+  position: absolute;
+  border-radius: 9999px;
+  background: var(--couleur-fin);
+  box-shadow: 0 0 8px var(--couleur-fin);
+}
+.flux-couche.horizontal .goutte {
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  animation: goutte-x 2.2s linear infinite;
+}
+.flux-couche.vertical .goutte {
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  animation: goutte-y 2.2s linear infinite;
+}
+@keyframes goutte-x {
+  from {
+    left: -6px;
+    background: var(--couleur-debut);
+  }
+  to {
+    left: 100%;
+    background: var(--couleur-fin);
+  }
+}
+@keyframes goutte-y {
+  from {
+    top: -6px;
+    background: var(--couleur-debut);
+  }
+  to {
+    top: 100%;
+    background: var(--couleur-fin);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flux-couche .goutte {
+    display: none;
+  }
+}
+
+/* Récit défilant : une étape qui n'est pas au centre de l'écran passe en retrait. */
+.etape-inactive,
+.etape-inactive * {
+  color: var(--encre-3) !important;
+}
+
+/* Barres horizontales qui se déploient depuis la gauche. */
+.barre {
+  transform-origin: left center;
+}
+:root[data-js] [data-dessin]:not([data-visible]) .barre {
+  transform: scaleX(0);
+}
+:root[data-js] [data-dessin][data-visible] .barre {
+  animation: deployer 900ms cubic-bezier(0.3, 0.7, 0.2, 1) both;
+  animation-delay: var(--delai, 0ms);
+}
+@keyframes deployer {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Carte des prix : le sol s'allume, puis les pics s'élèvent. Chaque pic est un
+   sous-tracé, et le pointillé repart de zéro à chaque sous-tracé : tous
+   poussent depuis le sol en même temps. */
+:root[data-js] .carte-prix:not([data-visible]) .carte-sol {
+  opacity: 0;
+}
+:root[data-js] .carte-prix[data-visible] .carte-sol {
+  animation: allumer 900ms ease both;
+}
+:root[data-js] .carte-prix:not([data-visible]) .pic {
+  stroke-dasharray: 0 200;
+}
+:root[data-js] .carte-prix[data-visible] .pic {
+  animation: pousser 1100ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--delai, 0ms);
+}
+@keyframes pousser {
+  from {
+    stroke-dasharray: 0 200;
+  }
+  to {
+    stroke-dasharray: 200 0;
+  }
+}
+
+/* Fiche de compétences : un seul panneau d'onglet visible avec JavaScript ;
+   sans JavaScript, tous s'affichent l'un sous l'autre. */
+:root[data-js] .fiche-panneau[data-inactif] {
+  display: none;
+}
+
+/* Radar : la forme se déploie depuis le centre. */
+.radar-forme {
+  transform-box: view-box;
+  transform-origin: center;
+}
+:root[data-js] [data-dessin]:not([data-visible]) .radar-forme {
+  transform: scale(0);
+}
+:root[data-js] [data-dessin][data-visible] .radar-forme {
+  animation: deployer-radar 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes deployer-radar {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Accueil : panneaux holographiques (un par projet)
+   --------------------------------------------------------------------------- */
+
+.holo-emplacement {
+  list-style: none;
+  transition: opacity 300ms;
+}
+
+/* Grand écran : les panneaux en arc autour du visiteur, inclinés par la souris. */
+@media (min-width: 1024px) {
+  .holo-scene {
+    perspective: 1600px;
+  }
+  /* Les panneaux en retrait passent derrière le plan de la liste : seule la
+     liste recevrait le pointeur. On le lui retire pour le donner aux panneaux. */
+  .holo-arc {
+    pointer-events: none;
+    transform-style: preserve-3d;
+    transform: rotateX(var(--incl-y, 0deg)) rotateY(var(--incl-x, 0deg));
+    transition: transform 500ms ease-out;
+  }
+  .holo-emplacement {
+    transform-style: preserve-3d;
+    transform: translateZ(var(--recul, 0px)) rotateY(var(--angle, 0deg));
+  }
+  .holo-panneau {
+    pointer-events: auto;
+    min-height: 440px;
+    transform: translateZ(var(--avance, 0px));
+  }
+  .holo-ouvert .holo-panneau {
+    transform: translateZ(260px) scale(1.04);
+    transition-duration: 420ms;
+  }
+}
+
+/* Au chargement, les panneaux se matérialisent l'un après l'autre. */
+:root[data-js] .holo-panneau {
+  animation: materialiser 900ms ease-out both;
+  animation-delay: var(--delai, 0ms);
+}
+@keyframes materialiser {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    filter: brightness(2.2);
+  }
+  55% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    filter: brightness(1.7);
+  }
+  65% {
+    opacity: 0.55;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    filter: none;
+  }
+}
+
+/* Table holographique : un quadrillage qui fuit vers l'horizon. */
+.holo-table {
+  background-image:
+    linear-gradient(to right, rgb(143 220 238 / 0.13) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(143 220 238 / 0.13) 1px, transparent 1px);
+  background-size: 64px 64px;
+  transform: perspective(700px) rotateX(64deg);
+  transform-origin: bottom center;
+  mask-image: linear-gradient(to top, black 10%, transparent 90%);
+  animation: defiler 7s linear infinite;
+}
+@keyframes defiler {
+  to {
+    background-position: 0 64px;
+  }
+}
+
+/* Ouverture d'un projet : une barre de chargement de la durée exacte de l'ouverture. */
+.holo-barre {
+  width: 0;
+  animation: charger 420ms linear forwards;
+}
+@keyframes charger {
+  to {
+    width: 100%;
+  }
+}
+
+/* Recherche de station : la barre de l'état « recherche », puis l'arrivée des résultats. */
+.recherche-barre {
+  animation: recherche-barre 0.9s ease-in-out infinite;
+}
+@keyframes recherche-barre {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+.resultats-apparition {
+  animation: resultats-apparition 0.4s ease-out both;
+}
+@keyframes resultats-apparition {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .recherche-barre,
+  .resultats-apparition {
+    animation: none;
+  }
+}
