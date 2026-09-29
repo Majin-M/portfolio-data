@@ -259,7 +259,7 @@ export const LANGAGES: {
     contexte: "développement web",
     pourQuoi: "ce portfolio (Next.js, React, d3, tests Playwright) ; une application météo",
     depots: [
-      { nom: "Ce portfolio", href: "https://github.com/Majin-M/portfolio" },
+      { nom: "Ce portfolio", href: "https://github.com/Majin-M/portfolio-data" },
       { nom: "WeatherApp", href: "https://github.com/Majin-M/WeatherApp" },
     ],
   },

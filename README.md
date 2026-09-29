@@ -2,8 +2,6 @@
 
 Site statique (Next.js, TypeScript, Tailwind CSS) qui présente mes projets de data engineering : le système construit (sources, pipeline, modèle de données, qualité) et ce qu'il produit.
 
-Le document de référence (positionnement, direction artistique, feuille de route) est [portfolio (1).md](<portfolio (1).md>).
-
 ## Lancer le site
 
 ```powershell
@@ -44,7 +42,7 @@ Le script s'arrête avec le code 1 s'il reste un problème. `npm run lint` et `n
 | `/projets/prenoms-de-france` | Ouverture sur le paysage des 34 prénoms arrivés en tête, récit défilant sur le top 10, recherche d'un prénom, pipeline animé et sections dépliables |
 | `/projets/entrepot-sql` | Projet guidé (variante « système ») : les couches en médailles bronze, argent, or ; lignage coloré par couche ; chiffres clés ; schéma en étoile |
 | `/projets/inclusion-financiere` | Taux de bancarisation par pays, emploi et éducation ; le piège de la précision ; l'identifiant glissé parmi les variables |
-| `/projets/prix-carburants` | Ouverture sur la carte des prix en 2.5D (une station par point, les plus chères en pics ; un clic lance la recherche sur ce point) ; « la moins chère autour de vous » ; récit du pipeline et sous le capot |
+| `/projets/prix-carburants` | La recherche d'abord : un lieu (ville, code postal, position), puis les stations les moins chères autour ; ensuite la carte des prix en 2.5D (un clic lance la recherche sur ce point), le récit du pipeline et sous le capot |
 | `/a-propos` | Présentation et contact |
 
 ## Données
@@ -58,7 +56,7 @@ npm run donnees:prenoms -- D:\autre\chemin    # ou un autre dossier
 
 Les petits fichiers (`diversite.json`, `ecart_regions.json`, `metadata.json`) sont lus au build ; les séries par initiale (`series/<INITIALE>.json`) sont chargées par le navigateur à la demande.
 
-Les prix des carburants viennent du dépôt [Carburant](https://github.com/Majin-M/Carburant). La page lit au build la copie de `public/data/carburant/` (carte, médianes, premier affichage de la recherche) ; dans le navigateur, la recherche charge les prix publiés chaque matin sur GitHub Pages, et se rabat sur la copie si le fichier ne répond pas. Pour rafraîchir la copie :
+Les prix des carburants viennent du dépôt [Carburant](https://github.com/Majin-M/Carburant). La page lit au build la copie de `public/data/carburant/` (carte, médianes) ; dans le navigateur, la recherche charge les prix publiés chaque matin sur GitHub Pages, et se rabat sur la copie si le fichier ne répond pas. Pour rafraîchir la copie :
 
 ```powershell
 npm run donnees:carburant                     # depuis ../Carburant/exports
@@ -102,9 +100,7 @@ Les animations sont décrites en CSS ([src/app/globals.css](src/app/globals.css)
 
 Avec `prefers-reduced-motion`, les états finaux s'affichent sans animation ni particules. Les compteurs partent de leur valeur réelle dans le HTML statique : aucun chiffre n'est affiché faux, même avant le chargement du JavaScript.
 
-## Choix provisoires
-
-En attendant le benchmark (document de référence, § 8) :
+## Choix de conception
 
 - **Typographies** : Newsreader pour le texte, IBM Plex Mono pour les données et les repères. Changer de police se fait dans [src/app/layout.tsx](src/app/layout.tsx) (variables `--police-texte` et `--police-donnees`).
 - **Couleurs** : thème sombre par défaut (fond `#0B0D0E`, texte `#E8E5DC`, accent terre cuite `#D4703F`) ; thème clair sur demande (fond crème `#F3EFE6`, accent `#A9522A`). Toutes les couleurs sont des variables CSS dans [src/app/globals.css](src/app/globals.css).
@@ -114,4 +110,6 @@ En attendant le benchmark (document de référence, § 8) :
 
 ## Déploiement
 
-`next build` produit un site entièrement statique (`output: "export"`) dans `out/`, publiable sur Vercel, GitHub Pages ou tout hébergeur de fichiers.
+`next build` produit un site entièrement statique (`output: "export"`) dans `out/`. Il est prévu pour Vercel, relié à ce dépôt : chaque push sur `main` le reconstruit.
+
+Réglages Vercel : préréglage **Next.js**, commande `npm run build`, rien d'autre à changer. Le script `corriger-export-windows.mjs` ne corrige rien sous Linux et laisse l'export tel quel. Les données sont versionnées dans `public/data/` : le build n'a pas besoin des dépôts des pipelines.
