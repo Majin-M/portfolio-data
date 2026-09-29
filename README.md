@@ -41,7 +41,7 @@ Le script s'arrête avec le code 1 s'il reste un problème. `npm run lint` et `n
 | `/projets` | Liste des projets, avec un aperçu tiré des données |
 | `/projets/prenoms-de-france` | Ouverture sur le paysage des 34 prénoms arrivés en tête, récit défilant sur le top 10, recherche d'un prénom, pipeline animé et sections dépliables |
 | `/projets/entrepot-sql` | Projet guidé (variante « système ») : les couches en médailles bronze, argent, or ; lignage coloré par couche ; chiffres clés ; schéma en étoile |
-| `/projets/inclusion-financiere` | Taux de bancarisation par pays, emploi et éducation ; le piège de la précision ; l'identifiant glissé parmi les variables |
+| `/projets/inclusion-financiere` | Taux de bancarisation par pays, emploi et éducation ; le piège de la précision ; l'identifiant retiré des variables, avant / après ; schémas d'architecture et de flux |
 | `/projets/prix-carburants` | La recherche d'abord : un lieu (ville, code postal, position), puis les stations les moins chères autour ; ensuite la carte des prix en 2.5D (un clic lance la recherche sur ce point), le récit du pipeline et sous le capot |
 | `/a-propos` | Présentation et contact |
 

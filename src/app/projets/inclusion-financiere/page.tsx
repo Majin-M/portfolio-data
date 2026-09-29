@@ -7,11 +7,12 @@ import { Barres } from "@/components/graphiques/barres";
 import { Revele } from "@/components/mouvement";
 import {
   ANOMALIES,
+  CORRECTIONS,
   DEPOT,
   DONNEES,
   MESURE_LE,
   MODELE,
-  MODELE_SANS_ID,
+  MODELE_AVEC_ID,
   PAR_EDUCATION,
   PAR_EMPLOI,
   PAR_PAYS,
@@ -62,7 +63,7 @@ export default function PageInclusionFinanciere() {
               </div>
             </div>
           }
-          legendeVisuel={`Réponses dont la possession d'un compte est connue (${nombre(DONNEES.lignesModele)} sur ${nombre(DONNEES.reponses)}).`}
+          legendeVisuel={`Réponses dont la possession d'un compte est connue : ${nombre(DONNEES.lignesCibleConnue)} sur ${nombre(DONNEES.lignesNettoyees)} après nettoyage. Les ${DONNEES.paysInconnu} réponses sans pays ne figurent pas dans les barres.`}
         />
 
         <Conteneur>
@@ -133,18 +134,19 @@ export default function PageInclusionFinanciere() {
           </section>
 
           <section className="border-t border-trait py-24">
-            <Chapitre numero="L'histoire · 3" titre="Un identifiant parmi les variables">
+            <Chapitre numero="L'histoire · 3" titre="L'identifiant qui gonflait le score">
               <p>
-                La colonne <code className="code-inline">uniqueid</code> est encodée comme une variable : le modèle apprend à
-                partir d&apos;identifiants de répondants, qui ne disent rien d&apos;une personne.
+                Dans la première version, la colonne <code className="code-inline">uniqueid</code> était encodée comme une
+                variable : le modèle apprenait à partir d&apos;identifiants de répondants, qui ne disent rien d&apos;une personne.
+                Elle est maintenant exclue.
               </p>
             </Chapitre>
             <Revele className="mt-14">
               <GrandsChiffres
                 separateur="→"
                 chiffres={[
-                  { valeur: MODELE.variables, legende: "variables avec l'identifiant" },
-                  { valeur: MODELE_SANS_ID.variables, legende: "variables sans lui" },
+                  { valeur: MODELE_AVEC_ID.variables, legende: "variables avec l'identifiant" },
+                  { valeur: MODELE.variables, legende: "variables sans lui" },
                 ]}
               />
             </Revele>
@@ -169,25 +171,26 @@ export default function PageInclusionFinanciere() {
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Tel que dans le dépôt</td>
+                    <td>Première version, avec l&apos;identifiant</td>
+                    <td className="num">{nombre(MODELE_AVEC_ID.variables)}</td>
+                    <td className="num">{pourcent(MODELE_AVEC_ID.rappel)}</td>
+                    <td className="num">{pourcent(MODELE_AVEC_ID.precisionOui)}</td>
+                    <td className="num">{decimal(MODELE_AVEC_ID.auc, 3)}</td>
+                  </tr>
+                  <tr>
+                    <td>Version actuelle, sans l&apos;identifiant</td>
                     <td className="num">{nombre(MODELE.variables)}</td>
                     <td className="num">{pourcent(MODELE.rappel)}</td>
                     <td className="num">{pourcent(MODELE.precisionOui)}</td>
                     <td className="num">{decimal(MODELE.auc, 3)}</td>
                   </tr>
-                  <tr>
-                    <td>Sans l&apos;identifiant</td>
-                    <td className="num">{nombre(MODELE_SANS_ID.variables)}</td>
-                    <td className="num">{pourcent(MODELE_SANS_ID.rappel)}</td>
-                    <td className="num">{pourcent(MODELE_SANS_ID.precisionOui)}</td>
-                    <td className="num">{decimal(MODELE_SANS_ID.auc, 3)}</td>
-                  </tr>
                 </tbody>
               </table>
             </div>
             <p className="mt-8 max-w-2xl text-encre-2">
-              Sans l&apos;identifiant, le modèle retrouve davantage de personnes avec un compte, mais son AUC baisse : une partie
-              de son score venait d&apos;un signal qu&apos;il n&apos;aurait pas dû avoir. Même jeu de test, mêmes paramètres.
+              Sans l&apos;identifiant, l&apos;AUC passe de {decimal(MODELE_AVEC_ID.auc, 2)} à {decimal(MODELE.auc, 2)} : une
+              partie du score venait d&apos;un signal que le modèle n&apos;aurait pas dû avoir. Il retrouve en revanche davantage
+              de personnes avec un compte. Mêmes données nettoyées, même jeu de test, mêmes paramètres.
             </p>
           </section>
 
@@ -203,8 +206,12 @@ export default function PageInclusionFinanciere() {
               {[
                 ["Source", "CSV FinScope", `${nombre(DONNEES.reponses)} réponses, ${DONNEES.colonnes} colonnes`],
                 ["Exploration", "notebooks/EDA.ipynb", "profilage, manquants, doublons, distributions"],
-                ["Nettoyage", "CSV nettoyé", `${DONNEES.manquantsTraites} valeurs manquantes remplacées, colonnes en snake_case`],
-                ["Modèle", "src/model.py", `Random Forest, ${MODELE.arbres} arbres, encodage one-hot`],
+                [
+                  "Nettoyage",
+                  "CSV nettoyé",
+                  `${DONNEES.manquantsTraites} valeurs manquantes remplacées, ${DONNEES.horsPeriodeRetirees} lignes hors période retirées`,
+                ],
+                ["Modèle", "src/model.py", `Random Forest, ${MODELE.arbres} arbres, ${MODELE.variables} variables`],
                 ["Usage", "app.py", "formulaire Streamlit, probabilité en temps réel"],
               ].map(([etape, objet, detail], i) => (
                 <Revele as="li" key={etape} delai={i * 120} className="border border-trait-fort bg-fond-2 p-4">
@@ -218,7 +225,38 @@ export default function PageInclusionFinanciere() {
             </ol>
 
             <div className="mt-20">
-              <Depliable id="dataset" numero="01" titre="Le dataset" resume="Enquêtes FinScope, quatre pays, 2016 à 2018">
+              <Depliable
+                id="architecture"
+                numero="01"
+                titre="Architecture et flux de données"
+                resume="Les schémas du dépôt, de la source à l'application"
+              >
+                <div className="space-y-8">
+                  {[
+                    ["architecture", "Architecture : source FinScope, couches brute, nettoyée et modèle, application Streamlit"],
+                    ["flux_de_donnees", "Flux de données : du CSV brut à la probabilité affichée dans le formulaire"],
+                  ].map(([fichier, description]) => (
+                    <figure key={fichier}>
+                      <a
+                        href={`/projets/inclusion-financiere/${fichier}.png`}
+                        className="block overflow-hidden rounded-sm bg-white p-3 hover:outline hover:outline-accent"
+                        rel="noopener"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element -- export statique, image locale */}
+                        <img
+                          src={`/projets/inclusion-financiere/${fichier}.png`}
+                          alt={description}
+                          className="h-auto w-full"
+                          loading="lazy"
+                        />
+                      </a>
+                      <figcaption className="mt-2 text-sm text-encre-3">{description}. Cliquez pour agrandir.</figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </Depliable>
+
+              <Depliable id="dataset" numero="02" titre="Le dataset" resume="Enquêtes FinScope, quatre pays, 2016 à 2018">
                 <p className="max-w-2xl">
                   Réponses aux enquêtes <strong>FinScope</strong> menées au Kenya, au Rwanda, en Tanzanie et en Ouganda : pays,
                   année, type de localisation, accès au téléphone, taille du foyer, âge (moyenne de {decimal(DONNEES.ageMoyen, 1)}{" "}
@@ -229,20 +267,40 @@ export default function PageInclusionFinanciere() {
 
               <Depliable
                 id="qualite"
-                numero="02"
+                numero="03"
                 titre="La qualité"
-                resume={`${DONNEES.manquantsTraites} valeurs manquantes traitées, 4 anomalies restantes`}
+                resume={`${CORRECTIONS.length} défauts corrigés, ${ANOMALIES.length} points restants`}
               >
                 <p className="max-w-2xl">
                   Le nettoyage remplace les {DONNEES.manquantsTraites} valeurs manquantes (médiane pour les nombres, « Unknown »
-                  pour les catégories) et normalise les noms de colonnes. Aucun doublon. Le profilage du fichier nettoyé montre ce
-                  qu&apos;il reste à traiter :
+                  pour les catégories), retire les lignes hors période et normalise les noms de colonnes :{" "}
+                  {nombre(DONNEES.lignesNettoyees)} lignes, aucune valeur manquante, aucun doublon. Trois défauts relevés à
+                  l&apos;exploration ont été corrigés :
                 </p>
                 <div className="mt-6 overflow-x-auto">
                   <table className="tableau min-w-[560px] max-w-3xl">
                     <thead>
                       <tr>
-                        <th scope="col">Anomalie</th>
+                        <th scope="col">Corrigé</th>
+                        <th scope="col">Détail</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {CORRECTIONS.map((c) => (
+                        <tr key={c.constat}>
+                          <td className="font-medium">{c.constat}</td>
+                          <td className="text-encre-2">{c.detail}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="mt-8 max-w-2xl">Le profilage du fichier nettoyé montre ce qu&apos;il reste à traiter :</p>
+                <div className="mt-6 overflow-x-auto">
+                  <table className="tableau min-w-[560px] max-w-3xl">
+                    <thead>
+                      <tr>
+                        <th scope="col">Reste à traiter</th>
                         <th scope="col">Détail</th>
                       </tr>
                     </thead>
@@ -260,7 +318,7 @@ export default function PageInclusionFinanciere() {
 
               <Depliable
                 id="decisions"
-                numero="03"
+                numero="04"
                 titre="Les décisions techniques"
                 resume="Modules séparés, Random Forest, Streamlit"
               >
@@ -293,9 +351,9 @@ export default function PageInclusionFinanciere() {
 
               <Depliable
                 id="ameliorations"
-                numero="04"
+                numero="05"
                 titre="Ce que j'améliorerais"
-                resume="Évaluer, retirer l'identifiant, rééquilibrer"
+                resume="Évaluer, contrôler, entraîner une fois"
               >
                 <ul className="max-w-2xl list-none space-y-4">
                   <li>
@@ -303,12 +361,9 @@ export default function PageInclusionFinanciere() {
                     la précision, trompeuse sur des classes aussi déséquilibrées.
                   </li>
                   <li>
-                    <strong>Retirer l&apos;identifiant des variables.</strong> Mesuré : 47 variables au lieu de 8 782, rappel de{" "}
-                    {pourcent(MODELE_SANS_ID.rappel)} au lieu de {pourcent(MODELE.rappel)}.
-                  </li>
-                  <li>
-                    <strong>Corriger les anomalies restantes</strong> et les transformer en contrôles automatiques : années hors
-                    période, modalité « 6 », cibles inconnues.
+                    <strong>Transformer les corrections en contrôles automatiques</strong>, relancés à chaque exécution : aucune
+                    valeur manquante, années de 2016 à 2018, identifiant absent des variables. Puis traiter ce qui reste : modalité
+                    « 6 », pays et cibles inconnus.
                   </li>
                   <li>
                     <strong>Entraîner une fois, pas à chaque démarrage.</strong> Sauvegarder le modèle entraîné plutôt que de le

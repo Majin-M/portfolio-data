@@ -96,7 +96,7 @@ export const PROJETS: Projet[] = [
     volumes: {
       Raw: "23 524 réponses",
       Transform: "267 manquants traités",
-      Model: "AUC 0,85",
+      Model: "AUC 0,81",
     },
   },
   {
