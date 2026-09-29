@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/corriger-export-windows.mjs",
+    "build": "node scripts/telecharger-donnees-carburant.mjs && next build && node scripts/corriger-export-windows.mjs",
     "lint": "eslint",
     "donnees:prenoms": "node scripts/copier-donnees-prenoms.mjs",
     "donnees:carburant": "node scripts/copier-donnees-carburant.mjs",

@@ -62,6 +62,8 @@ Les prix des carburants viennent du dépôt [Carburant](https://github.com/Majin
 npm run donnees:carburant                     # depuis ../Carburant/exports
 ```
 
+Sur Vercel, `npm run build` commence par [telecharger-donnees-carburant.mjs](scripts/telecharger-donnees-carburant.mjs), qui remplace cette copie par les prix publiés ce matin sur GitHub Pages (la copie reste en secours si la page ne répond pas). Le pipeline Carburant relance ce build chaque matin, par un deploy hook, une fois les prix publiés.
+
 Les résultats de l'entrepôt SQL sont recopiés dans [src/contenu/entrepot-sql.ts](src/contenu/entrepot-sql.ts), avec leur date d'exécution : pour les mettre à jour, relancer les requêtes du dépôt sur la base et recopier les résultats.
 
 ## Structure
