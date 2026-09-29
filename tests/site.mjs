@@ -18,7 +18,7 @@ const BASE = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/, "");
 // L'overlay de développement de Next n'existe qu'avec `next dev`.
 const DEV = !process.env.PRODUCTION;
 const axeSource = readFileSync(require.resolve("axe-core/axe.min.js"), "utf-8");
-const PAGES = ["/", "/projets/", "/projets/prenoms-de-france/", "/projets/entrepot-sql/", "/projets/inclusion-financiere/", "/projets/prix-carburants/", "/a-propos/"];
+const PAGES = ["/", "/projets/", "/projets/prenoms-de-france/", "/projets/entrepot-sql/", "/projets/inclusion-financiere/", "/projets/prix-carburants/", "/a-propos/", "/mentions-legales/"];
 // Prix des carburants publiés chaque matin sur GitHub Pages. S'ils ne répondent pas
 // (Pages pas encore activé, réseau), la page se rabat sur sa copie locale : l'échec
 // de cette seule requête n'est pas un problème, le test des interactions vérifie le repli.

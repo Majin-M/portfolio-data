@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Conteneur } from "@/components/conteneur";
 import { GITHUB } from "@/lib/projets";
 
@@ -14,6 +15,10 @@ export function SiteFooter() {
         </p>
         <p className="label shrink-0">
           Généré le {genereLe} ·{" "}
+          <Link href="/mentions-legales" className="hover:text-encre">
+            Mentions légales
+          </Link>{" "}
+          ·{" "}
           <a href={GITHUB} className="hover:text-encre" rel="noopener">
             GitHub ↗
           </a>
