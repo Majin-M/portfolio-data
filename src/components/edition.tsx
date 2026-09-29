@@ -72,9 +72,9 @@ export function Ouverture({
                 </Revele>
               )}
               {liens.length > 0 && (
-                <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2">
+                <ul className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2">
                   {liens.map((l) => (
-                    <li key={l.href}>
+                    <li key={l.href} className="flex">
                       <a href={l.href} className="ui inline-flex items-center gap-2 !text-encre hover:!text-accent" rel="noopener">
                         {l.href.includes("github.com") && <Logo nom="GitHub" className="size-4" />}
                         {l.label} ↗

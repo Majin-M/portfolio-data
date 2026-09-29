@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Newsreader } from "next/font/google";
+import { IBM_Plex_Mono, Roboto } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
-// Polices provisoires : changer ici suffit (variables --police-texte et
-// --police-donnees, reprises par --font-texte et --font-donnees).
-const texte = Newsreader({
+// Polices : changer ici suffit (variables --police-texte et --police-donnees,
+// reprises par --font-texte et --font-donnees). Roboto est une police
+// variable : toutes les graisses tiennent dans un seul fichier.
+const texte = Roboto({
   variable: "--police-texte",
   subsets: ["latin"],
-  axes: ["opsz"],
 });
 
 const donnees = IBM_Plex_Mono({

@@ -102,7 +102,7 @@ Avec `prefers-reduced-motion`, les états finaux s'affichent sans animation ni p
 
 ## Choix de conception
 
-- **Typographies** : Newsreader pour le texte, IBM Plex Mono pour les données et les repères. Changer de police se fait dans [src/app/layout.tsx](src/app/layout.tsx) (variables `--police-texte` et `--police-donnees`).
+- **Typographies** : Roboto pour le texte, IBM Plex Mono pour les données et les repères. Changer de police se fait dans [src/app/layout.tsx](src/app/layout.tsx) (variables `--police-texte` et `--police-donnees`).
 - **Couleurs** : thème sombre par défaut (fond `#0B0D0E`, texte `#E8E5DC`, accent terre cuite `#D4703F`) ; thème clair sur demande (fond crème `#F3EFE6`, accent `#A9522A`). Toutes les couleurs sont des variables CSS dans [src/app/globals.css](src/app/globals.css).
 - **Graphiques** : composants React en SVG avec d3 (échelles et tracés), plutôt qu'Observable Plot, pour contrôler le survol, le clavier, les animations et les deux thèmes. Les couleurs des séries ont été validées pour le daltonisme et le contraste sur les deux fonds.
 - **Accueil** : panneaux holographiques en 3D CSS ([src/components/accueil/systeme.tsx](src/components/accueil/systeme.tsx)), sans WebGL : le texte reste net et accessible, et les panneaux s'empilent à plat sur mobile.

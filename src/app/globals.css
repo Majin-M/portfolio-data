@@ -78,7 +78,7 @@
   --color-bronze: var(--bronze);
   --color-argent: var(--argent);
   --color-or: var(--or);
-  --font-texte: var(--police-texte), Georgia, "Times New Roman", serif;
+  --font-texte: var(--police-texte), "Segoe UI", Arial, sans-serif;
   --font-donnees: var(--police-donnees), ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 
