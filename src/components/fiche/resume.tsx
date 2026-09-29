@@ -23,12 +23,9 @@ export function FicheResume({ chiffres }: { chiffres: ChiffreFiche[] }) {
         <p className="mt-6 max-w-xl text-xl leading-snug text-encre-2">{IDENTITE.phrase}</p>
         <Link
           href="/a-propos"
-          className="group mt-7 inline-flex items-center gap-3 bg-accent px-6 py-3.5 text-lg font-medium text-fond transition-transform hover:-translate-y-0.5"
+          className="mt-7 inline-flex items-center bg-accent px-6 py-3.5 text-lg font-medium text-fond transition-transform hover:-translate-y-0.5"
         >
           Découvrir mon parcours et mes compétences
-          <span aria-hidden className="transition-transform group-hover:translate-x-1">
-            →
-          </span>
         </Link>
         <ul className="mt-5 flex flex-wrap gap-3">
           <LiensProfil />
