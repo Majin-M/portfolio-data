@@ -225,7 +225,7 @@ export const OUTILS_HORS_DATA: { outil: string; usage: string; preuve: string; p
 ];
 
 /** Outils étudiés sans projet publié : affichés en contour, sans remplissage. */
-export const APPRENTISSAGE = ["Airflow", "Spark", "Databricks", "Kafka", "Snowflake"];
+export const APPRENTISSAGE = ["Airflow", "Spark", "Databricks", "Scala", "Hadoop", "Kafka", "Snowflake"];
 
 /** Langages : dans quels projets, pour quoi faire, dans quel contexte. */
 export const LANGAGES: {
