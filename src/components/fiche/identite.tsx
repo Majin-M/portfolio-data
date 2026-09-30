@@ -77,6 +77,11 @@ export function Certifications({ compact = false }: { compact?: boolean }) {
               <p className="mt-1 text-sm leading-snug text-encre-2">{c.couvre}</p>
             </>
           )}
+          {c.lien && (
+            <a href={c.lien} className="lien mt-1 inline-block text-sm" rel="noopener">
+              Voir le certificat ↗
+            </a>
+          )}
         </li>
       ))}
     </ul>

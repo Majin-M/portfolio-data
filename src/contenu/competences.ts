@@ -304,6 +304,7 @@ export const CERTIFICATIONS = [
     detail: "8 mois, Dakar",
     annee: "2024",
     couvre: "SQL, modélisation OLAP, Python, pandas, analyse exploratoire, machine learning",
+    lien: "https://diploma.gomycode.app/?id=31713891689860883",
   },
   {
     organisme: "Dakar Institute of Technology",
