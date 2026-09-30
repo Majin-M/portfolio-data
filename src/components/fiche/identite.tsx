@@ -1,6 +1,9 @@
 // Panneau fixe de la fiche : qui, en une phrase, trois chiffres vérifiables,
 // les certifications et les liens.
 
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { Logo } from "@/components/logos";
 import { Compteur } from "@/components/mouvement";
 import { CERTIFICATIONS, IDENTITE } from "@/contenu/competences";
@@ -41,6 +44,17 @@ export function Chiffres({ chiffres }: { chiffres: ChiffreFiche[] }) {
   );
 }
 
+/**
+ * Ajoute au lien d'un PDF l'empreinte du fichier, calculée au build : chaque
+ * version du CV a sa propre adresse, et les téléphones, qui gardent le PDF déjà
+ * téléchargé, ne rouvrent plus l'ancienne.
+ */
+function versionner(href: string) {
+  if (!href.endsWith(".pdf")) return href;
+  const empreinte = createHash("sha256").update(readFileSync(path.join(process.cwd(), "public", href))).digest("hex");
+  return `${href}?v=${empreinte.slice(0, 8)}`;
+}
+
 /** GitHub, LinkedIn et CV, chacun avec son logo. */
 export function LiensProfil() {
   return (
@@ -48,7 +62,7 @@ export function LiensProfil() {
       {IDENTITE.liens.map((l) => (
         <li key={l.href}>
           <a
-            href={l.href}
+            href={versionner(l.href)}
             className="ui inline-flex items-center gap-2 border border-trait-fort px-3 py-1.5 !text-encre hover:border-accent hover:!text-accent"
             rel="noopener"
           >
