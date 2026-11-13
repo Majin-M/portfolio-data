@@ -114,7 +114,7 @@ export const PROJETS: Projet[] = [
       Raw: "XML annuels officiels, ZIP archivés",
       Ingest: "ingest.py : flux, sha256, Parquet",
       Transform: "dbt : staging typé, heure de Paris",
-      Model: "3 marts, 53 tests",
+      Model: "3 marts, 54 tests",
       Store: "Parquet + DuckDB",
       Analyze: "GitHub Pages → recherche de ce site",
     },

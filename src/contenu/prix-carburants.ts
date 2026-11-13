@@ -22,7 +22,7 @@ export const PIPELINE = {
   stationsFichier2026: 14793,
   stationsAvecPrix2026: 9774,
   conflits: 2,
-  testsSinguliers: 18,
+  testsSinguliers: 19,
   /** Poids des fichiers 2026 (au 27/09). */
   zipMo: 28.5,
   xmlMo: 322,
