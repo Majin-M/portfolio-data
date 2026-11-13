@@ -5,11 +5,13 @@ import { Espace } from "@/components/espace";
 import { Logo } from "@/components/logos";
 import { Barres } from "@/components/graphiques/barres";
 import { CartePrix } from "@/components/graphiques/carte-prix";
+import { CourbePrix } from "@/components/graphiques/courbe-prix";
 import { Revele } from "@/components/mouvement";
 import { RechercheStation } from "@/components/recherche-station";
 import {
   DEPOT,
   DONNEES_PUBLIEES,
+  DEBUT_HAUSSE,
   E85_HAUT,
   LOT_NUIT,
   MESURE_LE,
@@ -18,7 +20,13 @@ import {
   TESTS_EN_ECHEC,
 } from "@/contenu/prix-carburants";
 import { JOURS_PRIX_RECENT, euros, jourDonnees } from "@/lib/carburant-commun";
-import { lireMetadataCarburant, lireStationsCarburant, medianesParCarburant, testsCarburant } from "@/lib/carburant";
+import {
+  lireMedianesQuotidiennes,
+  lireMetadataCarburant,
+  lireStationsCarburant,
+  medianesParCarburant,
+  testsCarburant,
+} from "@/lib/carburant";
 import { date, decimal, nombre, pourcent } from "@/lib/format";
 
 export const metadata: Metadata = {
@@ -42,6 +50,23 @@ export default function PagePrixCarburants() {
   const repereCarte = Math.round(medianes.find((m) => m.carburantId === CARBURANT_INITIAL)!.mediane * 10) / 10;
 
   const maxE85 = Math.max(...E85_HAUT.map((t) => t.releves));
+
+  // Évolution des prix : gazole et E10, les deux carburants les plus vendus.
+  const quotidiennes = lireMedianesQuotidiennes();
+  const gazole = quotidiennes.find((s) => s.carburantId === 1)!.points;
+  const e10 = quotidiennes.find((s) => s.carburantId === 5)!.points;
+  const debutHausse = gazole.find((p) => p.jour === DEBUT_HAUSSE)!;
+  const dernierJour = gazole[gazole.length - 1];
+  const hausse = dernierJour.prix / debutHausse.prix - 1;
+  const pic = gazole.filter((p) => p.jour >= DEBUT_HAUSSE).reduce((a, b) => (b.prix > a.prix ? b : a));
+  // Dernier jour où le gazole coûtait au plus le prix de l'E10 : il est plus cher depuis le lendemain.
+  const e10ParJour = new Map(e10.map((p) => [p.jour, p.prix]));
+  const dernierSousE10 = [...gazole].reverse().find((p) => p.prix <= (e10ParJour.get(p.jour) ?? Infinity));
+  const gazoleDevantDepuis =
+    dernierSousE10 && dernierSousE10.jour !== dernierJour.jour ? gazole[gazole.indexOf(dernierSousE10) + 1] : undefined;
+  const ecartE10 = dernierJour.prix - (e10ParJour.get(dernierJour.jour) ?? dernierJour.prix);
+  // « 1er janvier 2026 » : l'ordinal que Intl n'écrit pas.
+  const jourFr = (iso: string) => date(iso).replace(/^1 /, "1er ");
 
   return (
     <Espace>
@@ -107,7 +132,44 @@ export default function PagePrixCarburants() {
 
           {/* L'histoire */}
           <section className="border-t border-trait py-24">
-            <Chapitre numero="L'histoire · 1" titre="Un relevé n'est pas un changement">
+            <Chapitre
+              numero="L'histoire · 1"
+              titre={`Le gazole, ${hausse >= 0 ? "+" : ""}${pourcent(hausse, 0)} depuis le ${jourFr(DEBUT_HAUSSE)}`}
+            >
+              <p>
+                Le {jourFr(DEBUT_HAUSSE)}, le litre de gazole valait {euros(debutHausse.prix)} en médiane. Le{" "}
+                {jourFr(dernierJour.jour)}, {euros(dernierJour.prix)}
+                {pic.jour !== dernierJour.jour && <>, après un pic à {euros(pic.prix)} le {jourFr(pic.jour)}</>}.
+                {gazoleDevantDepuis && (
+                  <>
+                    {" "}
+                    Depuis le {jourFr(gazoleDevantDepuis.jour)}, il coûte plus cher que l&apos;E10 : {decimal(ecartE10 * 100, 1)}{" "}
+                    centimes de plus par litre le {jourFr(dernierJour.jour)}.
+                  </>
+                )}
+              </p>
+            </Chapitre>
+            <Revele className="mt-14">
+              <Figure
+                numero="01"
+                titre="Prix médian au litre, jour par jour"
+                source="mart_prix_medians_quotidiens · 2025-2026"
+                legende={`Chaque jour, le prix en vigueur dans chaque station : son dernier relevé, s'il a ${JOURS_PRIX_RECENT} jours ou moins. Chaque station compte une fois, quel que soit son nombre de relevés ; les prix suspects sont écartés. Survolez la courbe pour lire un jour.`}
+              >
+                <CourbePrix
+                  series={[
+                    { id: "gazole", label: "Gazole", couleur: "var(--serie-f)", points: gazole },
+                    { id: "e10", label: "E10", couleur: "var(--serie-m)", points: e10 },
+                  ]}
+                  description={`Prix médian au litre du gazole et de l'E10, jour par jour, du ${date(gazole[0].jour)} au ${date(dernierJour.jour)}. Gazole : ${euros(debutHausse.prix)} le ${date(DEBUT_HAUSSE)}, ${euros(dernierJour.prix)} le ${date(dernierJour.jour)}.`}
+                  reperes={[{ serie: "gazole", jour: DEBUT_HAUSSE, texte: jourFr(DEBUT_HAUSSE) }]}
+                />
+              </Figure>
+            </Revele>
+          </section>
+
+          <section className="border-t border-trait py-24">
+            <Chapitre numero="L'histoire · 2" titre="Un relevé n'est pas un changement">
               <p>
                 Le fichier officiel note le prix de chaque station plusieurs fois par jour, souvent sans qu&apos;il ait bougé.
                 Pour garder l&apos;historique des vrais changements, il faut d&apos;abord écarter les répétitions.
@@ -141,14 +203,14 @@ qualify prix_litre is distinct from lag(prix_litre) over (
           </section>
 
           <section className="border-t border-trait py-24">
-            <Chapitre numero="L'histoire · 2" titre="Quelle heure est-il dans le fichier ?">
+            <Chapitre numero="L'histoire · 3" titre="Quelle heure est-il dans le fichier ?">
               <p>
                 Les relevés sont datés sans fuseau horaire. Heure de Paris ou UTC ? La réponse change l&apos;ordre des relevés à
                 chaque changement d&apos;heure, et l&apos;âge des prix affichés.
               </p>
             </Chapitre>
             <div className="mt-14 grid gap-14 lg:grid-cols-12">
-              <div className="lg:col-span-5">
+              <div className="min-w-0 lg:col-span-5">
                 <p className="max-w-xl text-xl leading-snug text-encre-2">
                   Compter les relevés entre 2 h et 3 h la nuit du passage à l&apos;heure d&apos;été ne prouve rien : même un
                   dimanche ordinaire n&apos;en compte aucun. La preuve vient d&apos;un traitement automatique qui tourne chaque
@@ -156,9 +218,9 @@ qualify prix_litre is distinct from lag(prix_litre) over (
                   une seule fois d&apos;une heure, dans le sens attendu.
                 </p>
               </div>
-              <div className="lg:col-span-7">
+              <div className="min-w-0 lg:col-span-7">
               <Figure
-                numero="01"
+                numero="02"
                 titre="Le lot de 01:17 autour des changements d'heure 2025"
                 source="raw.prix · relevés par tranche horaire"
                 legende="Relevés entre 01:10 et 01:25, et entre 02:10 et 02:25. Le 27 octobre, le lot a tourné à 00:17."
@@ -201,7 +263,7 @@ qualify prix_litre is distinct from lag(prix_litre) over (
           </section>
 
           <section className="border-t border-trait py-24">
-            <Chapitre numero="L'histoire · 3" titre="Des prix d'essence dans la case E85">
+            <Chapitre numero="L'histoire · 4" titre="Des prix d'essence dans la case E85">
               <p>
                 L&apos;E85 coûte environ 0,85 € le litre. Pourtant, quelques stations y affichent des prix de 1,60 à 2,30 € : le
                 prix de l&apos;essence, saisi dans la mauvaise case.
@@ -209,7 +271,7 @@ qualify prix_litre is distinct from lag(prix_litre) over (
             </Chapitre>
             <div className="mt-14 grid gap-14 lg:grid-cols-2">
               <Figure
-                numero="02"
+                numero="03"
                 titre="Relevés d'E85 au-dessus de 1,20 €"
                 source="stg_roulez_eco__prix · 2025-2026"
                 legende={`Un creux net à 1,50 € sépare les deux groupes : au-delà, le prix est marqué suspect. Même règle pour le GPLc au-delà de ${euros(SEUILS_SUSPECTS.gplc, 2)}.`}

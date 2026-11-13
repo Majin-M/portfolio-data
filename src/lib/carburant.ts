@@ -35,6 +35,30 @@ export function testsCarburant(m: Metadata): string {
   return `${t.pass ?? 0}/${Object.values(t).reduce((a, b) => a + b, 0)}`;
 }
 
+type FichierMedianes = {
+  reference_at: string;
+  jours_prix_en_vigueur: number;
+  colonnes: string[];
+  /** Par identifiant de carburant : [jour, prix médian, nombre de stations], un par jour. */
+  carburants: Record<string, [string, number, number][]>;
+};
+
+export type SerieMediane = { carburantId: number; nom: string; points: { jour: string; prix: number; stations: number }[] };
+
+/**
+ * Prix médian de chaque carburant, jour par jour, sur les prix en vigueur
+ * (dernier relevé de chaque station, de 7 jours ou moins, prix suspects écartés).
+ */
+export function lireMedianesQuotidiennes(): SerieMediane[] {
+  const fichier = lire<FichierMedianes>("prix_medians.json");
+  const i = Object.fromEntries(fichier.colonnes.map((c, k) => [c, k]));
+  return Object.entries(fichier.carburants).map(([id, jours]) => ({
+    carburantId: Number(id),
+    nom: CARBURANTS[Number(id)],
+    points: jours.map((j) => ({ jour: j[i.jour] as string, prix: j[i.prix_median] as number, stations: j[i.stations] as number })),
+  }));
+}
+
 export type MedianeCarburant = { carburantId: number; nom: string; mediane: number; stations: number };
 
 /**

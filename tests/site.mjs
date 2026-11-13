@@ -327,7 +327,7 @@ for (const [nom, options, clair] of [
   await essayer(test, "détail d'un outil", async () => {
     await page.getByRole("tab", { name: "Outils" }).click();
     await page.getByRole("button", { name: "dbt dans Prix des carburants" }).hover();
-    await page.getByText(/53 tests/).first().waitFor({ timeout: 5000 });
+    await page.getByText(/60 tests/).first().waitFor({ timeout: 5000 });
   });
   for (const nom of ["Langages", "Projets", "Parcours"]) await page.getByRole("tab", { name: nom }).click();
   await vider(page, test);

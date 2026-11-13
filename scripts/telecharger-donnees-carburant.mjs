@@ -1,6 +1,6 @@
 // Avant le build sur Vercel : télécharge les prix publiés ce matin par le
 // pipeline Carburant sur GitHub Pages, dans public/data/carburant/. La date,
-// la carte et les médianes de la page sont ainsi celles du dernier passage.
+// la carte, les médianes et la courbe des prix sont ainsi celles du dernier passage.
 //
 // Hors Vercel (build local), le script ne fait rien : la copie versionnée reste
 // telle quelle, et `npm run donnees:carburant` la met à jour depuis le dépôt local.
@@ -13,7 +13,7 @@ import { resolve } from "node:path";
 
 const SOURCE = "https://majin-m.github.io/Carburant";
 const CIBLE = resolve("public/data/carburant");
-const FICHIERS = ["metadata.json", "prix_actuels.json"];
+const FICHIERS = ["metadata.json", "prix_actuels.json", "prix_medians.json"];
 
 if (!process.env.VERCEL && !process.argv.includes("--forcer")) {
   console.log("Build local : copie versionnée des prix des carburants conservée.");

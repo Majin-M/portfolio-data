@@ -22,7 +22,7 @@ export const PIPELINE = {
   stationsFichier2026: 14793,
   stationsAvecPrix2026: 9774,
   conflits: 2,
-  testsSinguliers: 19,
+  testsSinguliers: 20,
   /** Poids des fichiers 2026 (au 27/09). */
   zipMo: 28.5,
   xmlMo: 322,
@@ -59,6 +59,9 @@ export const E85_HAUT = [
   { tranche: "2,2", releves: 13 },
   { tranche: "2,3", releves: 4 },
 ];
+
+/** Début du récit de la hausse : le prix médian du gazole est comparé à celui de ce jour. */
+export const DEBUT_HAUSSE = "2026-01-01";
 
 export const SEUILS_SUSPECTS = { e85: 1.5, gplc: 1.8 };
 
