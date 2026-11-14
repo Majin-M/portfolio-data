@@ -4,19 +4,26 @@ import { Chapitre, Depliable, Figure, GrandsChiffres, Mesures, Ouverture, Statut
 import { Espace } from "@/components/espace";
 import { Logo } from "@/components/logos";
 import { Barres } from "@/components/graphiques/barres";
+import { Ecarts } from "@/components/graphiques/ecarts";
 import { Revele } from "@/components/mouvement";
 import {
   ANOMALIES,
   CORRECTIONS,
   DEPOT,
   DONNEES,
+  GENRE_CASES,
+  GENRE_PAR_EDUCATION,
+  GENRE_PAR_PAYS,
   INDEPENDANTS_ADDITIONNES,
   MESURE_LE,
   MODELE,
   MODELE_AVEC_ID,
   PAR_EDUCATION,
   PAR_EMPLOI_PAYS,
+  PAR_GENRE,
   PAR_PAYS,
+  TELEPHONE,
+  TELEPHONE_PAR_PAYS,
 } from "@/contenu/inclusion-financiere";
 import { date, decimal, nombre, pourcent } from "@/lib/format";
 
@@ -34,6 +41,12 @@ const ligneEmploi = (label: string) => PAR_EMPLOI_PAYS.find((l) => l.label === l
 const PUBLIC = ligneEmploi("Salarié du public");
 const INFORMEL = ligneEmploi("Emploi informel");
 const INDEPENDANT = ligneEmploi("Indépendant");
+
+const FEMMES = { label: "Femmes", couleur: "var(--serie-f)" };
+const HOMMES = { label: "Hommes", couleur: "var(--serie-m)" };
+const SANS_TELEPHONE = { label: "Sans téléphone", couleur: "var(--serie-neutre)" };
+const AVEC_TELEPHONE = { label: "Avec téléphone", couleur: "var(--accent)" };
+const ecartsGenrePays = GENRE_PAR_PAYS.map((p) => `${p.label} ${pourcent(p.femmes, 0)} contre ${pourcent(p.hommes, 0)}`);
 
 export default function PageInclusionFinanciere() {
   return (
@@ -159,7 +172,82 @@ export default function PageInclusionFinanciere() {
           </section>
 
           <section className="border-t border-trait py-24">
-            <Chapitre numero="L'histoire · 2" titre="Le piège de la précision">
+            <Chapitre numero="L'histoire · 2" titre="L'écart que rien ne comble">
+              <p>
+                Les femmes ont bien moins souvent un compte que les hommes. Ni le diplôme ni le téléphone ne font disparaître
+                l&apos;écart.
+              </p>
+            </Chapitre>
+            <Revele className="mt-14">
+              <GrandsChiffres
+                separateur="vs"
+                chiffres={[
+                  { valeur: PAR_GENRE.femmes, format: "pourcent", legende: "des femmes ont un compte" },
+                  { valeur: PAR_GENRE.hommes, format: "pourcent", legende: "des hommes" },
+                ]}
+              />
+            </Revele>
+            <div className="mt-16 max-w-3xl">
+              <Figure
+                numero="03"
+                titre="À diplôme égal, les femmes restent en dessous"
+                source="financial_inclusion_clean.csv"
+                legende={`Tous pays confondus. Sous chaque niveau, le nombre de femmes et d'hommes. Le supérieur passe sous la formation professionnelle à cause de la Tanzanie, où un tiers seulement de ses diplômés ont un compte, contre environ trois quarts dans les autres pays.`}
+              >
+                <Ecarts
+                  groupes={[FEMMES, HOMMES]}
+                  lignes={GENRE_PAR_EDUCATION.map((e) => ({
+                    label: e.label,
+                    a: e.femmes,
+                    b: e.hommes,
+                    detail: `${nombre(e.effectifFemmes)} f. · ${nombre(e.effectifHommes)} h.`,
+                  }))}
+                  description="Part des femmes et des hommes ayant un compte bancaire, par niveau d'éducation"
+                  max={0.7}
+                />
+              </Figure>
+            </div>
+            <p className="mt-10 max-w-2xl text-encre-2">
+              L&apos;écart tient dans chaque pays : {ecartsGenrePays.join(", ")}. Il tient aussi quand on croise pays et niveau
+              d&apos;éducation : dans les {GENRE_CASES.femmesEnDessous} cases sur {GENRE_CASES.cases} qui comptent au moins{" "}
+              {GENRE_CASES.seuil} femmes et {GENRE_CASES.seuil} hommes, les femmes ont moins souvent un compte.
+            </p>
+
+            <div className="mt-20 max-w-3xl">
+              <Figure
+                numero="04"
+                titre="Sans téléphone, presque personne n'a de compte"
+                source="financial_inclusion_clean.csv"
+                legende="Part des répondants qui ont un compte, selon qu'ils ont accès ou non à un téléphone. Sous chaque pays, le nombre de répondants sans téléphone."
+              >
+                <Ecarts
+                  groupes={[SANS_TELEPHONE, AVEC_TELEPHONE]}
+                  lignes={TELEPHONE_PAR_PAYS.map((p) => ({
+                    label: p.label,
+                    a: p.sans,
+                    b: p.avec,
+                    detail: `${nombre(p.effectifSans)} sans téléphone`,
+                  }))}
+                  description="Part des répondants ayant un compte bancaire, sans et avec accès à un téléphone, par pays"
+                  max={0.35}
+                />
+              </Figure>
+            </div>
+            <p className="mt-10 max-w-2xl text-encre-2">
+              Sur {nombre(TELEPHONE.effectifSans)} personnes sans téléphone, {nombre(TELEPHONE.sansAvecCompte)} ont un compte (
+              {pourcent(TELEPHONE.sans)}), contre {pourcent(TELEPHONE.avec)} de celles qui en ont un. Les femmes ont moins
+              souvent accès à un téléphone ({pourcent(TELEPHONE.accesFemmes, 0)} contre {pourcent(TELEPHONE.accesHommes, 0)}), mais
+              cela n&apos;explique pas tout : parmi les personnes qui en ont un, {pourcent(TELEPHONE.femmesAvecTelephone)} des
+              femmes ont un compte, contre {pourcent(TELEPHONE.hommesAvecTelephone)} des hommes.
+            </p>
+            <p className="mt-6 max-w-2xl text-sm text-encre-3">
+              Ce sont des écarts observés, pas des causes : le téléphone peut aider à ouvrir un compte comme accompagner un
+              revenu qui le permet.
+            </p>
+          </section>
+
+          <section className="border-t border-trait py-24">
+            <Chapitre numero="L'histoire · 3" titre="Le piège de la précision">
               <p>
                 Le modèle du dépôt a été entraîné sur toutes les données, sans mesure de performance. Évalué ici sur un jeu de
                 test mis de côté, il a l&apos;air excellent. Il ne l&apos;est pas.
@@ -198,7 +286,7 @@ export default function PageInclusionFinanciere() {
           </section>
 
           <section className="border-t border-trait py-24">
-            <Chapitre numero="L'histoire · 3" titre="L'identifiant qui gonflait le score">
+            <Chapitre numero="L'histoire · 4" titre="L'identifiant qui gonflait le score">
               <p>
                 Dans la première version, la colonne <code className="code-inline">uniqueid</code> était encodée comme une
                 variable : le modèle apprenait à partir d&apos;identifiants de répondants, qui ne disent rien d&apos;une personne.

@@ -143,3 +143,51 @@ export const ANOMALIES = [
     detail: "fautes conservées après le passage en snake_case : level_of_educuation, the_relathip_with_head",
   },
 ];
+
+/** Part des femmes et des hommes ayant un compte (cible et genre connus). */
+export const PAR_GENRE = { femmes: 0.1071, hommes: 0.1895, effectifFemmes: 13837, effectifHommes: 9614 };
+
+/** Femmes et hommes, par niveau d'éducation, tous pays confondus (du moins au plus instruit). */
+export const GENRE_PAR_EDUCATION = [
+  { label: "Sans instruction", femmes: 0.0316, hommes: 0.0575, effectifFemmes: 3169, effectifHommes: 1322 },
+  { label: "Enseignement primaire", femmes: 0.0637, hommes: 0.1156, effectifFemmes: 7405, effectifHommes: 5329 },
+  { label: "Enseignement secondaire", femmes: 0.1898, hommes: 0.2812, effectifFemmes: 2229, effectifHommes: 1984 },
+  { label: "Formation professionnelle", femmes: 0.4988, hommes: 0.6474, effectifFemmes: 421, effectifHommes: 380 },
+  { label: "Enseignement supérieur", femmes: 0.4686, hommes: 0.5592, effectifFemmes: 574, effectifHommes: 574 },
+];
+
+/** Femmes et hommes, par pays (même ordre que PAR_PAYS). */
+export const GENRE_PAR_PAYS = [
+  { label: "Kenya", femmes: 0.2011, hommes: 0.3172 },
+  { label: "Rwanda", femmes: 0.0857, hommes: 0.1577 },
+  { label: "Tanzanie", femmes: 0.0634, hommes: 0.13 },
+  { label: "Ouganda", femmes: 0.07, hommes: 0.1173 },
+];
+
+/**
+ * Cases pays × niveau d'éducation comptant au moins 30 femmes et 30 hommes, et
+ * nombre de cases où les femmes ont moins souvent un compte que les hommes.
+ */
+export const GENRE_CASES = { seuil: 30, cases: 19, femmesEnDessous: 19 };
+
+/** Accès au téléphone : part des répondants ayant un compte, avec et sans téléphone. */
+export const TELEPHONE = {
+  avec: 0.1838,
+  sans: 0.0172,
+  effectifSans: 6053,
+  sansAvecCompte: 104,
+  /** Part des femmes et des hommes qui ont accès à un téléphone. */
+  accesFemmes: 0.7051,
+  accesHommes: 0.7959,
+  /** Parmi celles et ceux qui ont un téléphone, part ayant un compte. */
+  femmesAvecTelephone: 0.1467,
+  hommesAvecTelephone: 0.2312,
+};
+
+/** Avec et sans téléphone, par pays (même ordre que PAR_PAYS). */
+export const TELEPHONE_PAR_PAYS = [
+  { label: "Kenya", sans: 0.0483, avec: 0.3048, effectifSans: 1283 },
+  { label: "Rwanda", sans: 0.0128, avec: 0.1358, effectifSans: 1486 },
+  { label: "Tanzanie", sans: 0.0049, avec: 0.1502, effectifSans: 2647 },
+  { label: "Ouganda", sans: 0.0157, avec: 0.1168, effectifSans: 637 },
+];

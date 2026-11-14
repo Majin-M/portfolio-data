@@ -287,6 +287,23 @@ for (const [nom, options, clair] of [
   for (const d of await page.locator("details").all()) await d.evaluate((el) => (el.open = true));
   await page.waitForTimeout(500);
   await vider(page, test);
+
+  // Inclusion financière : écarts femmes-hommes et téléphone, une ligne par catégorie
+  test = "inclusion · écarts";
+  await page.goto(BASE + "/projets/inclusion-financiere/", { waitUntil: "networkidle" });
+  for (const [titre, lignes] of [["À diplôme égal", 5], ["Sans téléphone, presque", 4]]) {
+    await essayer(test, titre, async () => {
+      const f = page.locator("figure", { hasText: titre });
+      await f.scrollIntoViewIfNeeded();
+      const n = await f.locator("ul[aria-label] > li").count();
+      if (n !== lignes) noter(test, `${titre} : ${n} lignes au lieu de ${lignes}`);
+      const largeurs = await f.locator("ul[aria-label] > li span.relative").evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().width)));
+      if (new Set(largeurs).size !== 1 || largeurs[0] < 100) noter(test, `${titre} : pistes de largeurs ${largeurs.join(", ")}`);
+    });
+  }
+  for (const d of await page.locator("details").all()) await d.evaluate((el) => (el.open = true));
+  await page.waitForTimeout(500);
+  await vider(page, test);
   await ctx.close();
 }
 
