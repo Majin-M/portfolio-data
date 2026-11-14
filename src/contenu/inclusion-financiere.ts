@@ -1,7 +1,7 @@
 // Contenu de la page « Inclusion financière ».
 //
 // Toutes les valeurs viennent d'une exécution du 14 novembre 2026 sur le
-// dépôt local (Documents/inclusion_financiere, commit 4a420fb) : profilage des
+// dépôt local (Documents/inclusion_financiere, commit 92cfc83) : profilage des
 // fichiers data/Financial_inclusion_dataset.csv et data/financial_inclusion_clean.csv,
 // puis évaluation du modèle du dépôt (src/model.py, Random Forest de 200 arbres,
 // random_state 42) sur un jeu de test stratifié de 20 %, que le dépôt ne prévoit
@@ -80,18 +80,18 @@ export const MODELE = {
   testOui: 662,
   precision: 0.8674,
   base: 0.8591,
-  auc: 0.8157,
-  rappel: 0.4018,
-  precisionOui: 0.5396,
+  auc: 0.8169,
+  rappel: 0.3973,
+  precisionOui: 0.54,
 };
 
 /** Première version du modèle : uniqueid encodé comme variable (8 735 colonnes one-hot). */
 export const MODELE_AVEC_ID = {
   variables: 8781,
-  precision: 0.8863,
-  auc: 0.8497,
-  rappel: 0.2961,
-  precisionOui: 0.7424,
+  precision: 0.8857,
+  auc: 0.8471,
+  rappel: 0.3006,
+  precisionOui: 0.7289,
 };
 
 /** Défauts trouvés à l'exploration et corrigés dans le dépôt. */
@@ -109,6 +109,11 @@ export const CORRECTIONS = [
     constat: "Pays manquant",
     detail:
       "14 lignes sans pays, toutes de 2017, l'année de la seule Tanzanie, et dont les identifiants comblent des trous de la numérotation tanzanienne : elles lui sont rattachées",
+  },
+  {
+    constat: "Ville et campagne inversées en Tanzanie",
+    detail:
+      "le fichier donnait 73 % d'urbains, moins souvent équipés d'un compte, d'un téléphone et d'un diplôme que les « ruraux » ; le rapport FinScope Tanzania 2017 donne 34 % d'urbains et 66 % de ruraux. Les deux libellés sont échangés : 27 % d'urbains, qui ont désormais plus souvent un compte, comme dans les autres pays",
   },
   {
     constat: "Identifiant parmi les variables",
@@ -131,11 +136,6 @@ export const ANOMALIES = [
     constat: "Emplois codés différemment selon les pays",
     detail:
       "ni agriculture ni emploi public en Tanzanie et en Ouganda, « sans revenu » seulement chez eux, 27 % d'« autres revenus » en Ouganda : les types d'emploi ne se comparent qu'à l'intérieur d'un pays",
-  },
-  {
-    constat: "Ville et campagne en Tanzanie",
-    detail:
-      "73 % de « ville », contre 14 à 42 % ailleurs, et ces « urbains » ont moins de comptes, de téléphones et d'instruction que les « ruraux » : les libellés semblent inversés",
   },
   { constat: "Niveau d'éducation « 6 »", detail: "une modalité sans libellé, à côté des niveaux nommés" },
   {
