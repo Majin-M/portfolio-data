@@ -1,7 +1,7 @@
 // Contenu de la page « Inclusion financière ».
 //
-// Toutes les valeurs viennent d'une exécution du 30 septembre 2026 sur le
-// dépôt local (Documents/inclusion_financiere, commit c5a21e3) : profilage des
+// Toutes les valeurs viennent d'une exécution du 14 novembre 2026 sur le
+// dépôt local (Documents/inclusion_financiere, commit 4a420fb) : profilage des
 // fichiers data/Financial_inclusion_dataset.csv et data/financial_inclusion_clean.csv,
 // puis évaluation du modèle du dépôt (src/model.py, Random Forest de 200 arbres,
 // random_state 42) sur un jeu de test stratifié de 20 %, que le dépôt ne prévoit
@@ -9,11 +9,10 @@
 // modèle, avec l'identifiant parmi les variables, est évaluée sur les mêmes
 // données nettoyées et le même jeu de test.
 //
-// Les taux par pays et par emploi (PAR_EMPLOI_PAYS) ont été recalculés le
-// 14 novembre 2026 sur le même commit : chaque pays n'a été enquêté qu'une
-// année, et les types d'emploi ne sont pas codés de la même façon partout.
+// Chaque pays n'a été enquêté qu'une année, et les types d'emploi ne sont pas
+// codés de la même façon partout : ils sont donc donnés pays par pays.
 
-export const MESURE_LE = "2026-09-30";
+export const MESURE_LE = "2026-11-14";
 export const DEPOT = "https://github.com/Majin-M/inclusion_financiere";
 
 export const DONNEES = {
@@ -26,7 +25,8 @@ export const DONNEES = {
   ciblesInconnues: 36,
   /** Réponses dont la possession d'un compte est connue, après nettoyage. */
   lignesCibleConnue: 23485,
-  paysInconnu: 14,
+  /** Lignes sans pays, rattachées à la Tanzanie par le nettoyage. */
+  paysRetrouves: 14,
   tauxCompte: 0.1409,
   ageMoyen: 38.8,
 };
@@ -38,7 +38,7 @@ export const DONNEES = {
 export const PAR_PAYS = [
   { label: "Kenya", annee: 2018, part: 0.251, effectif: 6066 },
   { label: "Rwanda", annee: 2016, part: 0.115, effectif: 8734 },
-  { label: "Tanzanie", annee: 2017, part: 0.092, effectif: 6570 },
+  { label: "Tanzanie", annee: 2017, part: 0.092, effectif: 6584 },
   { label: "Ouganda", annee: 2018, part: 0.086, effectif: 2101 },
 ] as const;
 
@@ -60,38 +60,38 @@ export const PAR_EDUCATION = [
 export const PAR_EMPLOI_PAYS: { label: string; parts: (number | null)[]; effectifs: (number | null)[] }[] = [
   { label: "Salarié du public", parts: [0.831, 0.661, null, null], effectifs: [260, 127, null, null] },
   { label: "Salarié du privé", parts: [0.54, 0.348, 0.641, 0.5], effectifs: [415, 161, 368, 108] },
-  { label: "Indépendant", parts: [0.382, 0.302, 0.062, 0.062], effectifs: [954, 603, 3740, 1104] },
+  { label: "Indépendant", parts: [0.382, 0.302, 0.062, 0.062], effectifs: [954, 603, 3748, 1104] },
   { label: "Autres revenus", parts: [0.409, 0.254, 0.147, 0.081], effectifs: [154, 323, 34, 568] },
   { label: "Agriculture et pêche", parts: [0.193, 0.085, null, null], effectifs: [1609, 3824, null, null] },
-  { label: "Emploi informel", parts: [0.131, 0.067, 0.05, null], effectifs: [1419, 2868, 1289, null] },
-  { label: "Vit d'envois d'argent", parts: [0.115, 0.105, 0.051, null], effectifs: [1187, 660, 671, null] },
-  { label: "Sans revenu", parts: [null, null, 0.021, 0.02], effectifs: [null, null, 375, 247] },
+  { label: "Emploi informel", parts: [0.131, 0.067, 0.05, null], effectifs: [1419, 2868, 1290, null] },
+  { label: "Vit d'envois d'argent", parts: [0.115, 0.105, 0.05, null], effectifs: [1187, 660, 674, null] },
+  { label: "Sans revenu", parts: [null, null, 0.021, 0.02], effectifs: [null, null, 377, 247] },
 ];
 
 /** Indépendants, tous pays additionnés, et part de la Tanzanie parmi eux. */
-export const INDEPENDANTS_ADDITIONNES = { part: 0.132, effectif: 6401, partTanzanie: 0.584 };
+export const INDEPENDANTS_ADDITIONNES = { part: 0.132, effectif: 6409, partTanzanie: 0.585 };
 
 /** Modèle actuel du dépôt : l'identifiant uniqueid est exclu des variables. */
 export const MODELE = {
   arbres: 200,
   lignes: 23482,
-  variables: 47,
+  variables: 46,
   test: 4697,
   testOui: 662,
-  precision: 0.8663,
+  precision: 0.8674,
   base: 0.8591,
-  auc: 0.8145,
-  rappel: 0.3943,
-  precisionOui: 0.5348,
+  auc: 0.8157,
+  rappel: 0.4018,
+  precisionOui: 0.5396,
 };
 
 /** Première version du modèle : uniqueid encodé comme variable (8 735 colonnes one-hot). */
 export const MODELE_AVEC_ID = {
-  variables: 8782,
-  precision: 0.8842,
-  auc: 0.8502,
-  rappel: 0.2915,
-  precisionOui: 0.7201,
+  variables: 8781,
+  precision: 0.8863,
+  auc: 0.8497,
+  rappel: 0.2961,
+  precisionOui: 0.7424,
 };
 
 /** Défauts trouvés à l'exploration et corrigés dans le dépôt. */
@@ -106,8 +106,13 @@ export const CORRECTIONS = [
     detail: "2029, 2039 et 2056, une ligne chacune, alors que l'enquête couvre 2016 à 2018 : les 3 lignes sont retirées",
   },
   {
+    constat: "Pays manquant",
+    detail:
+      "14 lignes sans pays, toutes de 2017, l'année de la seule Tanzanie, et dont les identifiants comblent des trous de la numérotation tanzanienne : elles lui sont rattachées",
+  },
+  {
     constat: "Identifiant parmi les variables",
-    detail: "uniqueid encodé en 8 735 colonnes one-hot : exclu du modèle, qui passe de 8 782 à 47 variables",
+    detail: "uniqueid encodé en 8 735 colonnes one-hot : exclu du modèle, qui passe de 8 781 à 46 variables",
   },
 ];
 
@@ -118,14 +123,9 @@ export const ANOMALIES = [
     detail: "36 lignes « Unknown » pour la possession d'un compte, écartées au moment de l'entraînement",
   },
   {
-    constat: "Pays inconnu",
-    detail:
-      "14 lignes dont le pays manquait, remplacé par « Unknown ». Toutes datent de 2017, la seule année de la Tanzanie, et leurs identifiants tombent dans sa plage : elles sont récupérables",
-  },
-  {
     constat: "Un pays, une année",
     detail:
-      "Rwanda 2016, Tanzanie 2017, Kenya et Ouganda 2018 : l'effet du pays et celui de l'année ne se séparent pas, et le formulaire de l'application accepte des couples qui n'existent pas",
+      "Rwanda 2016, Tanzanie 2017, Kenya et Ouganda 2018 : l'effet du pays et celui de l'année ne se séparent pas. L'application déduit désormais l'année du pays au lieu de la demander",
   },
   {
     constat: "Emplois codés différemment selon les pays",

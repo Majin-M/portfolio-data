@@ -71,7 +71,7 @@ export default function PageInclusionFinanciere() {
               </div>
             </div>
           }
-          legendeVisuel={`Chaque pays n'a été enquêté qu'une année : l'écart entre deux pays est aussi un écart entre deux années, et rien ne permet de les séparer. Réponses dont la possession d'un compte est connue : ${nombre(DONNEES.lignesCibleConnue)} sur ${nombre(DONNEES.lignesNettoyees)} après nettoyage. Les ${DONNEES.paysInconnu} réponses sans pays ne figurent pas dans les barres.`}
+          legendeVisuel={`Chaque pays n'a été enquêté qu'une année : l'écart entre deux pays est aussi un écart entre deux années, et rien ne permet de les séparer. Réponses dont la possession d'un compte est connue : ${nombre(DONNEES.lignesCibleConnue)} sur ${nombre(DONNEES.lignesNettoyees)} après nettoyage.`}
         />
 
         <Conteneur>
@@ -336,10 +336,10 @@ export default function PageInclusionFinanciere() {
                 resume={`${CORRECTIONS.length} défauts corrigés, ${ANOMALIES.length} points restants`}
               >
                 <p className="max-w-2xl">
-                  Le nettoyage remplace les {DONNEES.manquantsTraites} valeurs manquantes (médiane pour les nombres, « Unknown »
-                  pour les catégories), retire les lignes hors période et normalise les noms de colonnes :{" "}
-                  {nombre(DONNEES.lignesNettoyees)} lignes, aucune valeur manquante, aucun doublon. Trois défauts relevés à
-                  l&apos;exploration ont été corrigés :
+                  Le nettoyage traite les {DONNEES.manquantsTraites} valeurs manquantes (le pays déduit de l&apos;année, la médiane
+                  pour les nombres, « Unknown » pour les autres catégories), retire les lignes hors période et normalise les
+                  noms de colonnes : {nombre(DONNEES.lignesNettoyees)} lignes, aucune valeur manquante, aucun doublon. Les défauts
+                  relevés à l&apos;exploration et corrigés :
                 </p>
                 <div className="mt-6 overflow-x-auto">
                   <table className="tableau min-w-[560px] max-w-3xl">
@@ -427,7 +427,7 @@ export default function PageInclusionFinanciere() {
                   <li>
                     <strong>Transformer les corrections en contrôles automatiques</strong>, relancés à chaque exécution : aucune
                     valeur manquante, années de 2016 à 2018, identifiant absent des variables. Puis traiter ce qui reste : modalité
-                    « 6 », pays et cibles inconnus.
+                    « 6 », cibles inconnues.
                   </li>
                   <li>
                     <strong>Entraîner une fois, pas à chaque démarrage.</strong> Sauvegarder le modèle entraîné plutôt que de le
