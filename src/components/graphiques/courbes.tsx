@@ -41,6 +41,8 @@ type Props = {
   tableau?: boolean;
   /** Écart entre deux années graduées (par défaut 25, et 50 sur écran étroit). */
   pasAnnees?: number;
+  /** Haut de l'échelle imposé (ex. 1 pour une part) : plusieurs graphiques se comparent alors à vue. */
+  yMax?: number;
 };
 
 const LARGEUR_INITIALE = 720;
@@ -93,6 +95,7 @@ export function Courbes({
   reperes = [],
   tableau = true,
   pasAnnees = 25,
+  yMax: yMaxImpose,
 }: Props) {
   const conteneur = useRef<HTMLDivElement>(null);
   const svg = useRef<SVGSVGElement>(null);
@@ -131,13 +134,13 @@ export function Courbes({
   };
   const hauteurTrace = hauteur - marge.haut - marge.bas;
 
-  const yMax = Math.max(0, ...series.flatMap((s) => s.points.map(([, v]) => v)));
+  const yMax = yMaxImpose ?? Math.max(0, ...series.flatMap((s) => s.points.map(([, v]) => v)));
 
   const x = scaleLinear()
     .domain([xMin, xMax])
     .range([marge.gauche, largeur - marge.droite]);
   const y = scaleLinear()
-    .domain([0, yMax > 0 ? yMax * 1.04 : 1])
+    .domain([0, yMaxImpose ?? (yMax > 0 ? yMax * 1.04 : 1)])
     .nice(hauteur < 260 ? 4 : 5)
     .range([marge.haut + hauteurTrace, marge.haut]);
 

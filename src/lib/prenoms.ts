@@ -158,6 +158,132 @@ export function lireEffetAccents(): EffetAccents {
   };
 }
 
+export type Mixite = {
+  /**
+   * Par année : enfants qui portent un prénom plus souvent donné à l'autre sexe cette
+   * année-là (le sexe le moins fréquent de chaque prénom), et leur part des naissances.
+   * Sans seuil : un prénom « mixte ou pas » entre et sort du décompte d'un coup (CAMILLE,
+   * 9,6 % de garçons sur 1989-1993, faisait chuter la courbe de 0,75 point en 1991).
+   */
+  parAnnee: { annee: number; enfants: number; part: number }[];
+  /** Les prénoms qui comptent le plus d'enfants du sexe le moins fréquent, une année donnée. */
+  contributeurs: (annee: number, combien: number) => { forme: string; sexe: "F" | "M"; enfants: number }[];
+  /** Naissances de chaque sexe pour une forme sans accent et une année. */
+  annee: (forme: string, annee: number) => { F: number; M: number };
+  /** Part de filles par décennie (début de la décennie), pour les prénoms demandés. */
+  bascules: Record<string, [number, number][]>;
+  /**
+   * Part de filles année par année, sur cinq ans glissants (deux ans de part et d'autre),
+   * pour les mêmes prénoms. Les années de moins de 50 naissances sur la fenêtre sont omises.
+   */
+  basculesAnnuelles: Record<string, [number, number][]>;
+  /** Années où une forme sans accent a des naissances d'un sexe. */
+  anneesPubliees: (forme: string, sexe: "F" | "M") => number[];
+  /** Naissances de chaque sexe, toutes années, par forme sans accent. */
+  totaux: (forme: string) => { F: number; M: number };
+  /** Parmi les 100 formes les plus données à un sexe, combien l'ont été au moins une fois à l'autre. */
+  top100GarconsAvecFilles: number;
+  top100FillesAvecGarcons: number;
+};
+
+/**
+ * Prénoms donnés aux deux sexes, calculés au build sur les séries nationales,
+ * orthographes regroupées sans accent (les accents ne disent rien du sexe).
+ */
+export function lireMixite(bascules: string[]): Mixite {
+  const series = lireToutesSeries();
+  // forme sans accent -> sexe -> année -> naissances
+  const formes = new Map<string, Record<"F" | "M", Map<number, number>>>();
+  for (const [prenom, parSexe] of Object.entries(series)) {
+    const forme = sansAccents(prenom);
+    const f = formes.get(forme) ?? { F: new Map(), M: new Map() };
+    for (const sexe of ["F", "M"] as const) {
+      for (const [a, n] of parSexe[sexe] ?? []) f[sexe].set(a, (f[sexe].get(a) ?? 0) + n);
+    }
+    formes.set(forme, f);
+  }
+
+  const annees = new Map<number, { minoritaires: number; total: number }>();
+  const totauxFormes = new Map<string, { F: number; M: number }>();
+  for (const [forme, parSexe] of formes) {
+    const tot = { F: 0, M: 0 };
+    for (const a of new Set([...parSexe.F.keys(), ...parSexe.M.keys()])) {
+      const [f, m] = [parSexe.F.get(a) ?? 0, parSexe.M.get(a) ?? 0];
+      tot.F += f;
+      tot.M += m;
+      const y = annees.get(a) ?? { minoritaires: 0, total: 0 };
+      y.total += f + m;
+      y.minoritaires += Math.min(f, m);
+      annees.set(a, y);
+    }
+    totauxFormes.set(forme, tot);
+  }
+
+  const parDecennie = (forme: string): [number, number][] => {
+    const s = formes.get(forme);
+    if (!s) return [];
+    const d = new Map<number, { F: number; M: number }>();
+    for (const sexe of ["F", "M"] as const) {
+      for (const [a, n] of s[sexe]) {
+        const cle = Math.floor(a / 10) * 10;
+        const v = d.get(cle) ?? { F: 0, M: 0 };
+        v[sexe] += n;
+        d.set(cle, v);
+      }
+    }
+    return [...d.entries()]
+      .filter(([, v]) => v.F + v.M >= 50)
+      .sort((x, y) => x[0] - y[0])
+      .map(([cle, v]) => [cle, v.F / (v.F + v.M)]);
+  };
+
+  const parAnneeGlissante = (forme: string): [number, number][] => {
+    const s = formes.get(forme);
+    if (!s) return [];
+    const annees = [...new Set([...s.F.keys(), ...s.M.keys()])];
+    const [debut, fin] = [Math.min(...annees), Math.max(...annees)];
+    const points: [number, number][] = [];
+    for (let a = debut; a <= fin; a++) {
+      let [f, m] = [0, 0];
+      for (let k = a - 2; k <= a + 2; k++) {
+        f += s.F.get(k) ?? 0;
+        m += s.M.get(k) ?? 0;
+      }
+      if (f + m >= 50) points.push([a, f / (f + m)]);
+    }
+    return points;
+  };
+
+  const classement = (sexe: "F" | "M") =>
+    [...totauxFormes.entries()].sort((a, b) => b[1][sexe] - a[1][sexe]).slice(0, 100);
+  const autre = { F: "M", M: "F" } as const;
+  const top100Avec = (sexe: "F" | "M") => classement(sexe).filter(([, t]) => t[autre[sexe]] > 0).length;
+
+  return {
+    parAnnee: [...annees.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([annee, y]) => ({ annee, enfants: y.minoritaires, part: y.minoritaires / y.total })),
+    contributeurs: (annee, combien) =>
+      [...formes.entries()]
+        .map(([forme, s]) => {
+          const [f, m] = [s.F.get(annee) ?? 0, s.M.get(annee) ?? 0];
+          return { forme, sexe: (f < m ? "F" : "M") as "F" | "M", enfants: Math.min(f, m) };
+        })
+        .sort((a, b) => b.enfants - a.enfants)
+        .slice(0, combien),
+    annee: (forme, annee) => {
+      const s = formes.get(sansAccents(forme));
+      return { F: s?.F.get(annee) ?? 0, M: s?.M.get(annee) ?? 0 };
+    },
+    bascules: Object.fromEntries(bascules.map((p) => [p, parDecennie(sansAccents(p))])),
+    basculesAnnuelles: Object.fromEntries(bascules.map((p) => [p, parAnneeGlissante(sansAccents(p))])),
+    anneesPubliees: (forme, sexe) => [...(formes.get(sansAccents(forme))?.[sexe].keys() ?? [])].sort((a, b) => a - b),
+    totaux: (forme) => totauxFormes.get(sansAccents(forme)) ?? { F: 0, M: 0 },
+    top100GarconsAvecFilles: top100Avec("M"),
+    top100FillesAvecGarcons: top100Avec("F"),
+  };
+}
+
 /** Volumes du projet Prénoms sur le chemin du flux, lus dans metadata.json. */
 export function volumesPrenoms(): Record<string, string> {
   const m = lireMetadata();

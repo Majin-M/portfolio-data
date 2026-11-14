@@ -224,6 +224,19 @@ for (const [nom, options, clair] of [
     await page.waitForTimeout(800);
     if ((await affiche()) !== "LEA") noter(test, `clic sur LEA : ${await affiche()} affiché`);
   });
+  // Sexe minoritaire : montré comme un fait (« 0,0060 % des KEVIN »), sous les filles.
+  await essayer(test, "part du sexe minoritaire", async () => {
+    await page.fill("#prenom", "kevin");
+    await page.press("#prenom", "Enter");
+    await page.waitForTimeout(1200);
+    const resume = await page
+      .locator("figure", { has: page.locator("#prenom") })
+      .locator("li", { hasText: "naissances publiées" })
+      .filter({ hasText: "Filles" })
+      .first()
+      .innerText();
+    if (!/% des KEVIN/.test(resume)) noter(test, `KEVIN, filles : part du sexe minoritaire absente (${resume.replace(/\s+/g, " ")})`);
+  });
   await page.fill("#prenom", "zzqx");
   await page.press("#prenom", "Enter");
   await page.waitForTimeout(800);

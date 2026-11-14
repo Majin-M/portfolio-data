@@ -18,6 +18,7 @@ import {
   lireEcartRegions,
   lireEffetAccents,
   lireMetadata,
+  lireMixite,
   lirePaysage,
   type FichierSeries,
 } from "@/lib/prenoms";
@@ -38,6 +39,9 @@ const REPERES: Annotation[] = [
   { x: 1946, label: "1946 · exhaustivité garantie", court: "1946" },
   { x: 2012, label: "2012 · Mayotte", court: "2012" },
 ];
+
+// Histoire de la mixité : prénoms dont le sexe dominant a changé.
+const BASCULES = ["CAMILLE", "ANDREA", "CHARLIE", "EDEN"];
 
 // Histoire des accents : l'exemple suivi, l'année où les accents reviennent, début du graphique.
 const EXEMPLE_ACCENTS = "LÉA";
@@ -88,6 +92,20 @@ export default function PagePrenoms() {
   const mFin = ligne(derniere, "M");
   const pic = diversite.filter((l) => l.sexe === "M").reduce((a, b) => (b.part_top_10 > a.part_top_10 ? b : a));
   const marie1900 = lireSeries("M").MARIE?.F?.find(([a]) => a === premiere)?.[1];
+  // Histoire de la mixité, calculée au build sur les séries (orthographes regroupées sans accent).
+  const mixite = lireMixite(BASCULES);
+  const mixiteFin = mixite.parAnnee[mixite.parAnnee.length - 1];
+  const mixiteCreux = mixite.parAnnee.filter((p) => p.annee >= 1950).reduce((a, b) => (b.part < a.part ? b : a));
+  const mixiteSommet = mixite.parAnnee.filter((p) => p.annee < mixiteCreux.annee).reduce((a, b) => (b.part > a.part ? b : a));
+  const contributeurs = mixite.contributeurs(mixiteFin.annee, 4);
+  const camilleFin = mixite.annee("CAMILLE", mixiteFin.annee);
+  const LIBELLE_SEXE = { F: "filles prénommées", M: "garçons prénommés" } as const;
+  const marieGarcons = lireSeries("M").MARIE?.M ?? [];
+  const marieTotal = marieGarcons.reduce((t, [, n]) => t + n, 0);
+  const marieDebut = marieGarcons.filter(([a]) => a < premiere + 10).reduce((t, [, n]) => t + n, 0);
+  const kevinFilles = mixite.anneesPubliees("KEVIN", "F");
+  const kevin = mixite.totaux("KEVIN");
+
   // Histoire des accents : LÉA seule, puis toutes ses orthographes additionnées.
   const effetAccents = lireEffetAccents();
   const fichierL = lireSeries(initialeSansAccent(EXEMPLE_ACCENTS));
@@ -263,7 +281,140 @@ export default function PagePrenoms() {
           </section>
 
           <section className="border-t border-trait py-24">
-            <Chapitre numero="L'histoire · 3" titre="Ce que le fichier ne dit pas">
+            <Chapitre numero="L'histoire · 3" titre="Ni tout à fait filles, ni tout à fait garçons">
+              <p>
+                Un prénom n&apos;a pas de sexe dans le fichier : c&apos;est l&apos;état civil qui le dit, naissance par naissance.
+                Chaque année, des enfants reçoivent un prénom plus souvent donné à l&apos;autre sexe, et de plus en plus.
+              </p>
+            </Chapitre>
+            <Revele className="mt-14">
+              <GrandsChiffres
+                chiffres={[
+                  {
+                    valeur: mixiteFin.part,
+                    format: "pourcent",
+                    decimales: 2,
+                    legende: `des enfants nés en ${mixiteFin.annee} portent un prénom plus souvent donné à l'autre sexe`,
+                  },
+                ]}
+              />
+              <p className="mt-6 max-w-xl text-encre-2">
+                {nombre(mixiteFin.enfants)} enfants :{" "}
+                {contributeurs.map((c) => `${nombre(c.enfants)} ${LIBELLE_SEXE[c.sexe]} ${c.forme}`).join(", ")}…
+                C&apos;est {Math.floor(mixiteFin.part / mixiteCreux.part)} fois plus qu&apos;en {mixiteCreux.annee}, le point le plus bas
+                ({pourcent(mixiteCreux.part, 2)}), et presque autant qu&apos;en {mixiteSommet.annee}, au temps des DOMINIQUE (
+                {pourcent(mixiteSommet.part, 2)}).
+              </p>
+            </Revele>
+
+            <div className="mt-16">
+              <Figure
+                numero="02"
+                titre="Part des enfants qui portent un prénom plus souvent donné à l'autre sexe"
+                source="Séries nationales, orthographes regroupées sans accent"
+                legende="Chaque année, pour chaque prénom, les naissances du sexe le moins fréquent cette année-là. Aucun seuil : un prénom ne bascule pas d'un coup de « mixte » à « non mixte ». Le sommet des années 1950 est celui de DOMINIQUE et de CLAUDE."
+              >
+                <Courbes
+                  format="pourcent"
+                  hauteur={300}
+                  description={`Part des enfants qui portent un prénom plus souvent donné à l'autre sexe, ${premiere}-${derniere} : ${pourcent(mixiteSommet.part, 2)} en ${mixiteSommet.annee}, ${pourcent(mixiteCreux.part, 2)} en ${mixiteCreux.annee}, ${pourcent(mixiteFin.part, 2)} en ${mixiteFin.annee}`}
+                  annotations={REPERES}
+                  reperes={[
+                    { serie: "mixte", annee: mixiteSommet.annee },
+                    { serie: "mixte", annee: mixiteCreux.annee },
+                  ]}
+                  series={[
+                    {
+                      id: "mixte",
+                      label: "Autre sexe",
+                      couleur: "var(--accent)",
+                      points: mixite.parAnnee.map((p) => [p.annee, p.part] as [number, number]),
+                    },
+                  ]}
+                />
+              </Figure>
+            </div>
+
+            <div className="mt-16">
+              <Figure
+                numero="03"
+                titre="Quatre prénoms qui ont changé de sexe dominant"
+                source="Part de filles, toutes orthographes"
+                legende="Part de filles sur cinq ans glissants ; les années de moins de 50 naissances sur cinq ans ne sont pas tracées. Au-dessus de 50 %, le prénom est plus souvent donné à des filles."
+              >
+                <div className="grid gap-x-10 gap-y-12 sm:grid-cols-2">
+                  {BASCULES.map((prenom) => {
+                    const points = mixite.bascules[prenom];
+                    const [debut, fin] = [points[0], points[points.length - 1]];
+                    return (
+                      <div key={prenom} className="min-w-0">
+                        <p className="font-donnees text-lg text-encre">{prenom}</p>
+                        <p className="mb-3 text-sm text-encre-2">
+                          {pourcent(debut[1], 0)} de filles dans les années {debut[0]}, {pourcent(fin[1], 0)} dans les années{" "}
+                          {fin[0]}
+                        </p>
+                        <Courbes
+                          format="pourcent"
+                          hauteur={170}
+                          yMax={1}
+                          pasAnnees={40}
+                          description={`Part de filles parmi les ${prenom}, sur cinq ans glissants : ${pourcent(debut[1], 0)} dans les années ${debut[0]}, ${pourcent(fin[1], 0)} dans les années ${fin[0]}`}
+                          series={[
+                            { id: prenom, label: "Part de filles", couleur: "var(--serie-f)", points: mixite.basculesAnnuelles[prenom] },
+                          ]}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </Figure>
+            </div>
+
+            <div className="mt-16">
+              <p className="label mb-6">Ce que montrent les données</p>
+              <ul className="grid gap-x-10 gap-y-10 border-t border-trait pt-8 sm:grid-cols-2">
+                <li>
+                  <p className="font-donnees text-4xl leading-none text-encre">{nombre(marieTotal)}</p>
+                  <p className="label mt-3">garçons prénommés MARIE</p>
+                  <p className="mt-3 max-w-md text-encre-2">
+                    Surtout au début du siècle : {nombre(marieDebut)} dans les années {premiere}. Une tradition catholique, qui
+                    recule ensuite décennie après décennie, jusqu&apos;à moins de 50 garçons par décennie depuis 1980.
+                  </p>
+                </li>
+                <li>
+                  <p className="font-donnees text-4xl leading-none text-encre">
+                    {mixite.top100GarconsAvecFilles} sur 100
+                  </p>
+                  <p className="label mt-3">prénoms de garçons les plus donnés aussi donnés à des filles</p>
+                  <p className="mt-3 max-w-md text-encre-2">
+                    Au moins une fois depuis {premiere}, et {mixite.top100FillesAvecGarcons} sur 100 dans l&apos;autre sens. Un
+                    prénom « de garçon » ou « de fille » est une tendance, pas une règle.
+                  </p>
+                </li>
+                <li>
+                  <p className="font-donnees text-4xl leading-none text-encre">{nombre(kevin.F)}</p>
+                  <p className="label mt-3">filles prénommées KEVIN</p>
+                  <p className="mt-3 max-w-md text-encre-2">
+                    En {kevinFilles.join(" et ")}, pour {nombre(kevin.M)} garçons. Elles ne figurent qu&apos;au
+                    niveau national : réparties dans le pays, trop peu nombreuses pour être publiées dans une région.
+                  </p>
+                </li>
+                <li>
+                  <p className="font-donnees text-4xl leading-none text-encre">
+                    {nombre(camilleFin.M)} / {nombre(camilleFin.F)}
+                  </p>
+                  <p className="label mt-3">garçons et filles prénommés CAMILLE en {mixiteFin.annee}</p>
+                  <p className="mt-3 max-w-md text-encre-2">
+                    Prénom de garçon au début du siècle, de fille à {pourcent(mixite.bascules.CAMILLE.find(([d]) => d === 1990)?.[1] ?? 0, 0)} dans
+                    les années 1990, CAMILLE est de nouveau {camilleFin.M > camilleFin.F ? "plus souvent donné à des garçons" : "partagé"}.
+                  </p>
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          <section className="border-t border-trait py-24">
+            <Chapitre numero="L'histoire · 4" titre="Ce que le fichier ne dit pas">
               <p>
                 Un prénom trop rare n&apos;est pas publié, et aucune ligne ne regroupe les prénoms écartés. Une somme de
                 naissances n&apos;est donc pas un total de naissances.
@@ -287,7 +438,7 @@ export default function PagePrenoms() {
             </Revele>
             <div className="mt-16">
               <Figure
-                numero="02"
+                numero="04"
                 titre="Le même seuil s'applique à chaque région : la somme des régions n'atteint jamais le total France"
                 source="mart_ecart_regions_france"
                 legende={
@@ -317,7 +468,7 @@ export default function PagePrenoms() {
           </section>
 
           <section className="border-t border-trait py-24">
-            <Chapitre numero="L'histoire · 4" titre="Quand l'INSEE change ses accents">
+            <Chapitre numero="L'histoire · 5" titre="Quand l'INSEE change ses accents">
               <p>
                 Le fichier compte chaque orthographe à part. Or la saisie des accents a changé deux fois : en 1999, beaucoup
                 disparaissent ; en 2010-2012, ils reviennent. Des naissances passent alors d&apos;une orthographe à l&apos;autre
@@ -338,7 +489,7 @@ export default function PagePrenoms() {
             </Revele>
             <div className="mt-16">
               <Figure
-                numero="03"
+                numero="05"
                 titre={`${EXEMPLE_ACCENTS} : ${nombre(exempleSeul.get(ANNEE_RETOUR_ACCENTS - 1) ?? 0)} naissances en ${ANNEE_RETOUR_ACCENTS - 1}, ${nombre(exempleSeul.get(ANNEE_RETOUR_ACCENTS) ?? 0)} en ${ANNEE_RETOUR_ACCENTS}. Toutes orthographes réunies, ${nombre(exempleTotal.get(ANNEE_RETOUR_ACCENTS - 1) ?? 0)} puis ${nombre(exempleTotal.get(ANNEE_RETOUR_ACCENTS) ?? 0)}`}
                 source="Séries nationales, filles"
                 legende={
@@ -383,7 +534,7 @@ export default function PagePrenoms() {
             </Chapitre>
             <div className="mt-12">
               <Figure
-                numero="04"
+                numero="06"
                 source={`Séries nationales · ${nombre(metadata.lignes.series_exportees)} lignes publiées`}
                 legende={
                   <>
@@ -417,7 +568,7 @@ export default function PagePrenoms() {
             {statut && <div className="mt-8">{statut}</div>}
 
             <div className="mt-12">
-              <Figure numero="05" source={dbt ? `dbt ${dbt.version} · durées de la dernière exécution` : undefined}>
+              <Figure numero="07" source={dbt ? `dbt ${dbt.version} · durées de la dernière exécution` : undefined}>
                 <SchemaPipelinePrenoms durees={durees} fichiersSeries={fichiersSeries} />
               </Figure>
             </div>

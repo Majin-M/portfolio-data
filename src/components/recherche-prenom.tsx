@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState, type FormEvent } from "react";
 import { Courbes, type SerieCourbe } from "@/components/graphiques/courbes";
-import { nombre } from "@/lib/format";
+import { decimalesPourPart, nombre, pourcent } from "@/lib/format";
 import { initiale, sansAccents, type FichierSeries, type Sexe } from "@/lib/prenoms-commun";
 
 type Totaux = Record<number, Record<Sexe, number>>;
@@ -187,6 +187,8 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
     };
   });
 
+  const totalPrenom = resume.reduce((t, r) => t + r.total, 0);
+
   return (
     <div>
       <form onSubmit={soumettre} className="flex flex-col gap-3 sm:flex-row sm:items-end" role="search">
@@ -326,6 +328,14 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
               <p className="font-donnees text-sm text-encre-2">
                 <span className="text-encre">{nombre(r.total)}</span> naissances publiées · pic en {r.pic[0]} ({nombre(r.pic[1])})
                 · publié {r.publiees} années sur {derniere - premiere + 1}
+                {r.total < totalPrenom / 2 && (
+                  // Le sexe le moins fréquent : un fait à montrer, pas une erreur à masquer.
+                  <>
+                    {" "}
+                    · <span className="text-encre">{pourcent(r.total / totalPrenom, decimalesPourPart(r.total / totalPrenom))}</span>{" "}
+                    des {prenom}
+                  </>
+                )}
               </p>
             </div>
           </li>
