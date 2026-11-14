@@ -201,6 +201,29 @@ for (const [nom, options, clair] of [
     const a = await affiche();
     if (a !== attendu) noter(test, `« ${saisie} » affiche ${a}, attendu ${attendu}`);
   }
+  // Orthographes : en 2010, l'INSEE fait passer un tiers des LÉA vers LEA. Toutes
+  // orthographes additionnées, la courbe ne chute pas ; LÉA seule, elle chute.
+  await essayer(test, "orthographes additionnées", async () => {
+    await page.fill("#prenom", "léa");
+    await page.press("#prenom", "Enter");
+    await page.waitForTimeout(1200);
+    const recherche = page.locator("figure", { has: page.locator("#prenom") });
+    const naissances = async (annee) => {
+      const texte = await recherche.locator("tr", { has: page.locator(`th:text-is("${annee}")`) }).locator("td").first().textContent();
+      return Number(texte.replace(/\D/g, ""));
+    };
+    const [toutes2009, toutes2010] = [await naissances(2009), await naissances(2010)];
+    if (!(toutes2010 > 0.9 * toutes2009)) noter(test, `LÉA, toutes orthographes : ${toutes2009} en 2009, ${toutes2010} en 2010`);
+    await page.getByRole("button", { name: "Cette orthographe seule" }).click();
+    await page.waitForTimeout(500);
+    const [seule2009, seule2010] = [await naissances(2009), await naissances(2010)];
+    if (!(seule2010 < 0.8 * seule2009)) noter(test, `LÉA seule : ${seule2009} en 2009, ${seule2010} en 2010, chute attendue`);
+    await page.getByRole("button", { name: "Toutes les orthographes" }).click();
+    // Une orthographe sans accent choisie dans la liste s'affiche telle quelle.
+    await recherche.getByRole("button", { name: "LEA", exact: true }).click();
+    await page.waitForTimeout(800);
+    if ((await affiche()) !== "LEA") noter(test, `clic sur LEA : ${await affiche()} affiché`);
+  });
   await page.fill("#prenom", "zzqx");
   await page.press("#prenom", "Enter");
   await page.waitForTimeout(800);

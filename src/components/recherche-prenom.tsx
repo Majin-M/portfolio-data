@@ -19,6 +19,8 @@ type Props = {
 };
 
 type Entree = { cle: string; norme: string; total: number };
+/** Toutes les orthographes qui ne diffèrent que par les accents, ou celle affichée seule. */
+type Graphies = "toutes" | "exacte";
 
 const LIBELLES: Record<Sexe, string> = { F: "Filles", M: "Garçons" };
 const COULEURS: Record<Sexe, string> = { F: "var(--serie-f)", M: "var(--serie-m)" };
@@ -27,12 +29,29 @@ function totalNaissances(series: FichierSeries[string]): number {
   return (Object.values(series) as [number, number][][]).reduce((s, points) => s + points.reduce((t, [, n]) => t + n, 0), 0);
 }
 
+/**
+ * Additionne les séries de plusieurs orthographes, année par année. L'INSEE compte
+ * chaque orthographe à part, et son codage des accents change en 1999 puis en
+ * 2010-2012 : LÉA perd un tiers de ses naissances en 2010 au profit de LEA, alors
+ * que le total des deux ne bouge pas.
+ */
+function additionner(liste: FichierSeries[string][]): FichierSeries[string] {
+  const somme: FichierSeries[string] = {};
+  for (const sexe of ["F", "M"] as Sexe[]) {
+    const parAnnee = new Map<number, number>();
+    for (const series of liste) for (const [a, n] of series[sexe] ?? []) parAnnee.set(a, (parAnnee.get(a) ?? 0) + n);
+    if (parAnnee.size > 0) somme[sexe] = [...parAnnee.entries()].sort((x, y) => x[0] - y[0]);
+  }
+  return somme;
+}
+
 export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, seriesInitiales, exemples }: Props) {
   // Fichiers d'initiale complets, chargés à la demande.
   const [fichiers, setFichiers] = useState<Record<string, FichierSeries>>({});
   const [saisie, setSaisie] = useState("");
   const [prenom, setPrenom] = useState(prenomInitial);
   const [mode, setMode] = useState<"effectifs" | "part">("effectifs");
+  const [graphies, setGraphies] = useState<Graphies>("toutes");
   const [chargement, setChargement] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const enCours = useRef(new Map<string, Promise<FichierSeries | null>>());
@@ -79,7 +98,7 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
     return index.filter((e) => e.norme.startsWith(debut) && e.cle !== prenom).slice(0, 6);
   }, [index, cleSaisie, prenom]);
 
-  async function afficher(texte: string) {
+  async function afficher(texte: string, graphiesVoulues: Graphies = "toutes") {
     const cle = texte.trim().toLocaleUpperCase("fr-FR");
     if (!cle) return;
     const lettre = initiale(cle);
@@ -95,8 +114,10 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
     // Saisie avec accents : l'orthographe exacte d'abord. Saisie sans accent
     // (« lea ») : l'orthographe la plus donnée (LÉA), les autres restent proposées.
     const norme = sansAccents(cle);
-    if (fichier[cle] && cle !== norme) {
+    // Une orthographe choisie dans la liste est affichée telle quelle, même sans accent.
+    if (fichier[cle] && (cle !== norme || graphiesVoulues === "exacte")) {
       setPrenom(cle);
+      setGraphies(graphiesVoulues);
       setSaisie("");
       return;
     }
@@ -105,6 +126,7 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
       .sort((a, b) => totalNaissances(fichier[b]) - totalNaissances(fichier[a]));
     if (variantes.length > 0) {
       setPrenom(variantes[0]);
+      setGraphies(graphiesVoulues);
       setSaisie("");
       return;
     }
@@ -118,17 +140,24 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
     void afficher(saisie);
   }
 
-  // Le prénom initial est servi par le build ; les autres viennent du cache.
+  // Le prénom initial et ses autres orthographes sont servis par le build ; les autres viennent du cache.
   const lettreAffichee = initiale(prenom);
-  const seriesPrenom = fichiers[lettreAffichee]?.[prenom] ?? seriesInitiales[prenom] ?? {};
+  const fichierAffiche = fichiers[lettreAffichee] ?? seriesInitiales;
   const variantes = useMemo(() => {
-    const fichier = fichiers[lettreAffichee];
-    if (!fichier) return [];
     const norme = sansAccents(prenom);
-    return Object.keys(fichier)
+    return Object.keys(fichierAffiche)
       .filter((k) => k !== prenom && sansAccents(k) === norme)
-      .map((k) => ({ cle: k, total: totalNaissances(fichier[k]) }));
-  }, [fichiers, lettreAffichee, prenom]);
+      .map((k) => ({ cle: k, total: totalNaissances(fichierAffiche[k]) }))
+      .sort((a, b) => b.total - a.total);
+  }, [fichierAffiche, prenom]);
+  const additionne = graphies === "toutes" && variantes.length > 0;
+  const seriesPrenom = useMemo(
+    () =>
+      additionne
+        ? additionner([fichierAffiche[prenom] ?? {}, ...variantes.map((v) => fichierAffiche[v.cle])])
+        : (fichierAffiche[prenom] ?? {}),
+    [additionne, fichierAffiche, prenom, variantes],
+  );
 
   const sexes = (["F", "M"] as Sexe[]).filter((s) => seriesPrenom[s]);
   const annees = Array.from({ length: derniere - premiere + 1 }, (_, k) => premiere + k);
@@ -222,9 +251,35 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
       </div>
 
       <div className="mt-8 flex flex-wrap items-end justify-between gap-4">
-        <p className="font-donnees text-2xl text-encre sm:text-3xl" aria-live="polite">
-          {prenom}
-        </p>
+        <div aria-live="polite">
+          <p className="font-donnees text-2xl text-encre sm:text-3xl">{prenom}</p>
+          {additionne && (
+            <p className="mt-1 font-donnees text-xs text-encre-3">
+              + {variantes.map((v) => v.cle).join(", ")} : toutes les orthographes additionnées
+            </p>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-3">
+        {variantes.length > 0 && (
+          <div role="group" aria-label="Orthographes" className="flex border border-trait-fort font-donnees text-xs">
+            {(
+              [
+                ["toutes", "Toutes les orthographes"],
+                ["exacte", "Cette orthographe seule"],
+              ] as const
+            ).map(([valeur, libelle]) => (
+              <button
+                key={valeur}
+                type="button"
+                aria-pressed={graphies === valeur}
+                onClick={() => setGraphies(valeur)}
+                className={`px-3 py-2 font-texte text-sm ${graphies === valeur ? "bg-encre text-fond" : "text-encre-2 hover:text-encre"}`}
+              >
+                {libelle}
+              </button>
+            ))}
+          </div>
+        )}
         <div role="group" aria-label="Unité" className="flex border border-trait-fort font-donnees text-xs">
           {(
             [
@@ -243,6 +298,7 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
             </button>
           ))}
         </div>
+        </div>
       </div>
 
       <div className="mt-4">
@@ -251,8 +307,8 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
           format={mode === "part" ? "pourcent" : "nombre"}
           hauteur={340}
           attente={chargement !== null && chargement === lettreSaisie}
-          cle={`${prenom}-${mode}`}
-          description={`${mode === "part" ? "Part des naissances" : "Naissances"} de ${prenom} par année, ${premiere}-${derniere}`}
+          cle={`${prenom}-${mode}-${additionne}`}
+          description={`${mode === "part" ? "Part des naissances" : "Naissances"} de ${prenom}${additionne ? ", toutes orthographes additionnées," : ""} par année, ${premiere}-${derniere}`}
           annotations={[{ x: 1946, label: "1946 · exhaustivité garantie", court: "1946" }]}
         />
       </div>
@@ -277,14 +333,20 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
       </ul>
 
       {variantes.length > 0 && (
-        <p className="mt-4 text-sm text-encre-2">
-          Autre orthographe dans le fichier :{" "}
+        <p className="mt-4 max-w-3xl text-sm text-encre-2">
+          {additionne ? "Orthographes additionnées : " : "Autre orthographe dans le fichier : "}
+          {additionne && (
+            <>
+              <span className="font-donnees text-encre">{prenom}</span> ({nombre(totalNaissances(fichierAffiche[prenom] ?? {}))}{" "}
+              naissances),{" "}
+            </>
+          )}
           {variantes.map((v, i) => (
             <span key={v.cle}>
               {i > 0 && ", "}
               <button
                 type="button"
-                onClick={() => void afficher(v.cle)}
+                onClick={() => void afficher(v.cle, "exacte")}
                 className="font-donnees text-encre underline decoration-trait-fort underline-offset-4 hover:decoration-accent"
               >
                 {v.cle}
@@ -292,7 +354,8 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
               ({nombre(v.total)} naissances)
             </span>
           ))}
-          . L&apos;INSEE compte chaque orthographe à part.
+          . L&apos;INSEE compte chaque orthographe à part, et sa saisie des accents a changé en 1999 puis en 2010-2012 : seule,
+          une orthographe peut perdre ou gagner des naissances sans que les parents aient changé de choix.
         </p>
       )}
     </div>

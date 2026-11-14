@@ -20,7 +20,7 @@ import {
   lirePaysage,
   type FichierSeries,
 } from "@/lib/prenoms";
-import type { LigneDiversite, Sexe } from "@/lib/prenoms-commun";
+import { sansAccents, type LigneDiversite, type Sexe } from "@/lib/prenoms-commun";
 
 export const metadata: Metadata = {
   title: "Prénoms de France, 1900-2025",
@@ -64,8 +64,11 @@ export default function PagePrenoms() {
     return l;
   };
 
-  // Série du prénom affiché au chargement, préparée au build.
-  const seriesInitiales: FichierSeries = { [PRENOM_INITIAL]: lireSeries(PRENOM_INITIAL[0])[PRENOM_INITIAL] };
+  // Séries du prénom affiché au chargement et de ses autres orthographes (accents), préparées au build.
+  const fichierInitial = lireSeries(PRENOM_INITIAL[0]);
+  const seriesInitiales: FichierSeries = Object.fromEntries(
+    Object.entries(fichierInitial).filter(([cle]) => sansAccents(cle) === sansAccents(PRENOM_INITIAL)),
+  );
 
   // Dénominateurs des parts : naissances recensées par année et par sexe.
   const totaux: Record<number, Record<Sexe, number>> = {};
