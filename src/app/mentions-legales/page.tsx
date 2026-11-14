@@ -24,7 +24,7 @@ export default function MentionsLegales() {
   return (
     <Espace>
       <Conteneur className="pt-10 sm:pt-16">
-        <p className="label !text-accent">Mentions légales et confidentialité</p>
+        <p className="label text-accent">Mentions légales et confidentialité</p>
         <h1 className="mt-4 max-w-3xl font-texte text-4xl leading-tight font-medium tracking-tight sm:text-5xl">
           Ce site ne dépose aucun cookie et ne mesure pas son audience.
         </h1>

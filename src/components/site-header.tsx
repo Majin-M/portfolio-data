@@ -8,9 +8,9 @@ import { IDENTITE } from "@/contenu/competences";
 export function SiteHeader() {
   return (
     // Le header reste immobile pendant les transitions entre pages.
-    <header className="relative z-40 border-b border-trait" style={{ viewTransitionName: "site-header" }}>
+    <header className="entete relative z-40 border-b border-trait" style={{ viewTransitionName: "site-header" }}>
       <Conteneur className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-4">
-        <Link href="/" transitionTypes={["remonter"]} className="label !text-encre hover:!text-accent">
+        <Link href="/" transitionTypes={["remonter"]} className="label text-encre hover:text-accent">
           Marc Steven Mouthoud <span className="text-encre-3">/ data engineering</span>
         </Link>
         <nav aria-label="Navigation principale" className="flex flex-wrap items-center gap-x-6 gap-y-2">

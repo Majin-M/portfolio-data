@@ -107,93 +107,138 @@ body {
   outline-offset: 3px;
 }
 
-/* Monospace en capitales : réservée aux données et aux repères
-   (numéros de figure, couches, horodatages, sources). */
-.label {
-  font-family: var(--font-donnees);
-  font-size: 0.75rem;
-  line-height: 1.4;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--encre-3);
+/* Appui : le retour vient à l'enfoncement, pas au relâchement. */
+.presse {
+  transition:
+    transform 100ms ease-out,
+    background-color 150ms,
+    border-color 150ms,
+    color 150ms;
+}
+.presse:active {
+  transform: scale(0.97);
 }
 
-/* Texte d'interface : navigation, boutons, commandes. */
-.ui {
-  font-family: var(--font-texte);
-  font-size: 0.95rem;
-  line-height: 1.4;
-  color: var(--encre-2);
-  transition: color 150ms;
+/* En-tête : une matière translucide sous laquelle le contenu défile (grand
+   écran). La bordure n'apparaît qu'une fois la page défilée. */
+.entete {
+  background: var(--fond);
 }
-.ui:hover {
-  color: var(--encre);
+@media (min-width: 1024px) {
+  .entete {
+    position: sticky;
+    top: 0;
+    background: color-mix(in srgb, var(--fond) 72%, transparent);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+  }
 }
-
-/* Liens dans le texte courant. */
-.lien {
-  color: var(--encre);
-  text-decoration-line: underline;
-  text-decoration-color: var(--trait-fort);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
-  transition: text-decoration-color 150ms;
+@media (prefers-reduced-transparency: reduce) {
+  .entete {
+    background: var(--fond);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
-.lien:hover {
-  text-decoration-color: var(--accent);
-}
-
-.prose-projet p + p {
-  margin-top: 1em;
-}
-.prose-projet strong {
-  font-weight: 600;
-}
-.prose-projet code,
-.code-inline {
-  font-family: var(--font-donnees);
-  font-size: 0.85em;
-  padding: 0.05em 0.3em;
-  background: var(--fond-2);
-  border: 1px solid var(--trait);
-  border-radius: 3px;
+@media (prefers-contrast: more) {
+  .entete {
+    background: var(--fond);
+    backdrop-filter: none;
+    border-color: var(--trait-fort);
+  }
 }
 
-/* Tableaux de données : chiffres alignés. */
-.tableau {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-.tableau th {
-  font-family: var(--font-donnees);
-  font-size: 0.7rem;
-  font-weight: 400;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--encre-3);
-  text-align: left;
-  padding: 0.5rem 0.75rem 0.5rem 0;
-  border-bottom: 1px solid var(--trait-fort);
-  white-space: nowrap;
-}
-.tableau td {
-  padding: 0.45rem 0.75rem 0.45rem 0;
-  border-bottom: 1px solid var(--trait);
-  vertical-align: top;
-}
-.tableau .num {
-  font-family: var(--font-donnees);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  white-space: nowrap;
-}
-.tableau th.num {
-  text-align: right;
-}
-.tableau .mono {
-  font-family: var(--font-donnees);
-  font-size: 0.8rem;
+/* Classes maison dans la couche components : les utilitaires Tailwind
+   (normal-case, tracking-normal, text-*) les complètent sans « ! ». */
+@layer components {
+  /* Monospace en capitales : réservée aux données et aux repères
+     (numéros de figure, couches, horodatages, sources). */
+  .label {
+    font-family: var(--font-donnees);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--encre-3);
+  }
+
+  /* Texte d'interface : navigation, boutons, commandes. */
+  .ui {
+    font-family: var(--font-texte);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--encre-2);
+    transition: color 150ms;
+  }
+  .ui:hover {
+    color: var(--encre);
+  }
+
+  /* Liens dans le texte courant. */
+  .lien {
+    color: var(--encre);
+    text-decoration-line: underline;
+    text-decoration-color: var(--trait-fort);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    transition: text-decoration-color 150ms;
+  }
+  .lien:hover {
+    text-decoration-color: var(--accent);
+  }
+
+  .prose-projet p + p {
+    margin-top: 1em;
+  }
+  .prose-projet strong {
+    font-weight: 600;
+  }
+  .prose-projet code,
+  .code-inline {
+    font-family: var(--font-donnees);
+    font-size: 0.85em;
+    padding: 0.05em 0.3em;
+    background: var(--fond-2);
+    border: 1px solid var(--trait);
+    border-radius: 3px;
+  }
+
+  /* Tableaux de données : chiffres alignés. */
+  .tableau {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .tableau th {
+    font-family: var(--font-donnees);
+    font-size: 0.7rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--encre-3);
+    text-align: left;
+    padding: 0.5rem 0.75rem 0.5rem 0;
+    border-bottom: 1px solid var(--trait-fort);
+    white-space: nowrap;
+  }
+  .tableau td {
+    padding: 0.45rem 0.75rem 0.45rem 0;
+    border-bottom: 1px solid var(--trait);
+    vertical-align: top;
+  }
+  .tableau .num {
+    font-family: var(--font-donnees);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+  .tableau th.num {
+    text-align: right;
+  }
+  .tableau .mono {
+    font-family: var(--font-donnees);
+    font-size: 0.8rem;
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -252,13 +297,13 @@ body {
 /* Apparition au défilement. */
 [data-revele] {
   transition:
-    opacity 900ms ease,
-    transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    opacity 500ms ease-out,
+    transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
   transition-delay: var(--delai, 0ms);
 }
 :root[data-js] [data-revele]:not([data-visible]) {
   opacity: 0;
-  transform: translateY(18px);
+  transform: translateY(12px);
 }
 
 /* Tracés qui se dessinent (path avec pathLength="1"). */
@@ -333,6 +378,28 @@ body {
   animation: none;
 }
 
+
+/* Changement de thème : toute la page, en-tête compris, passe d'une
+   lumière à l'autre en fondu. */
+:root:active-view-transition-type(theme)::view-transition-old(root),
+:root:active-view-transition-type(theme)::view-transition-old(site-header) {
+  display: block;
+  animation: 320ms ease both theme-sortie;
+}
+:root:active-view-transition-type(theme)::view-transition-new(root),
+:root:active-view-transition-type(theme)::view-transition-new(site-header) {
+  animation: 320ms ease both theme-entree;
+}
+@keyframes theme-sortie {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes theme-entree {
+  from {
+    opacity: 0;
+  }
+}
 
 /* Plonger dans un projet ; remonter vers la liste. */
 ::view-transition-old(.plonger) {

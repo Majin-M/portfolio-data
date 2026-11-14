@@ -21,13 +21,13 @@ function Apercu({ projet }: { projet: Projet }) {
   return (
     <figure className="mt-4 md:mt-0">
       <VignetteCourbe
-        description="Part des naissances portée par les 10 prénoms les plus donnés, 1900-2025 : de 45 % à moins de 11 %"
+        description="Part des naissances portée par les 10 prénoms les plus donnés, 1900–2025 : de 45 % à moins de 11 %"
         series={[
           { id: "F", couleur: "var(--serie-f)", points: serie("F") },
           { id: "M", couleur: "var(--serie-m)", points: serie("M") },
         ]}
       />
-      <figcaption className="label mt-1 normal-case tracking-normal">Part du top 10, filles et garçons, 1900-2025</figcaption>
+      <figcaption className="label mt-1 normal-case tracking-normal">Part du top 10, filles et garçons, 1900–2025</figcaption>
     </figure>
   );
 }
@@ -37,7 +37,7 @@ export default function PageProjets() {
     <Espace>
       <Conteneur className="pt-10 sm:pt-16">
         <div className="border-b border-trait-fort pb-3">
-          <p className="label !text-accent">Archive · {PROJETS.length} entrées</p>
+          <p className="label text-accent">Archive · {PROJETS.length} entrées</p>
         </div>
         <h1 className="mt-8 font-texte text-6xl leading-none font-medium tracking-tight sm:text-7xl">Projets</h1>
         <p className="mt-6 max-w-2xl text-xl leading-snug text-encre-2">
@@ -75,7 +75,7 @@ export default function PageProjets() {
                 </ul>
                 <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
                   {p.href && (
-                    <Link href={p.href} transitionTypes={["plonger"]} className="ui !text-encre hover:!text-accent">
+                    <Link href={p.href} transitionTypes={["plonger"]} className="ui text-encre hover:text-accent">
                       Entrer dans le projet
                     </Link>
                   )}

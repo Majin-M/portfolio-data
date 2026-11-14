@@ -79,7 +79,7 @@ export function Recit({ series, format, description, annotations, etapes }: Prop
             >
               {/* Étape inactive : couleur secondaire (contraste suffisant), pas de transparence */}
               <div className={`transition-colors duration-500 ${i === actif ? "" : "etape-inactive"}`}>
-                <p className="label !text-accent">{e.surtitre}</p>
+                <p className="label text-accent">{e.surtitre}</p>
                 <div className="mt-4 flex flex-wrap gap-x-10 gap-y-4">
                   {e.chiffres.map((c) => (
                     <div key={c.legende}>

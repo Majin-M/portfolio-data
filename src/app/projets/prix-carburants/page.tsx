@@ -538,7 +538,7 @@ qualify prix_litre is distinct from lag(prix_litre) over (
               </Depliable>
             </div>
 
-            <a href={DEPOT} className="ui mt-12 inline-flex items-center gap-2 !text-encre hover:!text-accent" rel="noopener">
+            <a href={DEPOT} className="ui mt-12 inline-flex items-center gap-2 text-encre hover:text-accent" rel="noopener">
               <Logo nom="GitHub" className="size-4" />
               Tout le détail sur GitHub ↗
             </a>

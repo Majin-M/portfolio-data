@@ -507,7 +507,7 @@ export function TableauSeries({ series, format }: { series: SerieCourbe[]; forma
           <tbody>
             {Array.from({ length: xMax - xMin + 1 }, (_, k) => xMin + k).map((a) => (
               <tr key={a}>
-                <th scope="row" className="!border-b-trait font-donnees !text-xs !text-encre-2">
+                <th scope="row" className="border-b-trait font-donnees text-xs text-encre-2">
                   {a}
                 </th>
                 {series.map((s, i) => {

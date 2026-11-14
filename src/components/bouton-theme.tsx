@@ -21,9 +21,8 @@ function abonner(rappel: () => void) {
 export function BoutonTheme() {
   const theme = useSyncExternalStore(abonner, lireTheme, () => null);
 
-  function basculer() {
+  function appliquer(suivant: Theme) {
     const racine = document.documentElement;
-    const suivant: Theme = lireTheme() === "dark" ? "light" : "dark";
     if (suivant === "light") racine.dataset.theme = "light";
     else delete racine.dataset.theme;
     try {
@@ -34,11 +33,22 @@ export function BoutonTheme() {
     abonnes.forEach((rappel) => rappel());
   }
 
+  function basculer() {
+    const suivant: Theme = lireTheme() === "dark" ? "light" : "dark";
+    // Passer du noir au crème d'un coup éblouit : un fondu adoucit le saut de
+    // luminosité. Sans View Transitions ou en mouvement réduit, bascule directe.
+    if (!document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      appliquer(suivant);
+      return;
+    }
+    document.startViewTransition({ update: () => appliquer(suivant), types: ["theme"] });
+  }
+
   return (
     <button
       type="button"
       onClick={basculer}
-      className="ui inline-flex items-center gap-2"
+      className="ui presse inline-flex items-center gap-2"
       aria-label={theme === "light" ? "Passer au thème sombre" : "Passer au thème clair"}
     >
       <span

@@ -144,7 +144,7 @@ export default function PagePrenoms() {
           identifiant="Projet 01 · Batch ETL"
           source="INSEE / édition 2026"
           titre="Prénoms de France"
-          periode={`${premiere} — ${derniere}`}
+          periode={`${premiere}–${derniere}`}
           phrase={
             <p>
               {derniere - premiere + 1} ans de naissances, {nombre(metadata.lignes.source)} lignes. Chaque crête est un prénom qui
@@ -383,7 +383,7 @@ export default function PagePrenoms() {
                       ["Licence", "Licence Ouverte 2.0 (Etalab)"],
                     ].map(([cle, val]) => (
                       <tr key={cle}>
-                        <th scope="row" className="w-32 !border-b-trait">
+                        <th scope="row" className="w-32 border-b-trait">
                           {cle}
                         </th>
                         <td>{val}</td>
@@ -587,7 +587,7 @@ export default function PagePrenoms() {
               </Depliable>
             </div>
 
-            <a href={DEPOT} className="ui mt-12 inline-flex items-center gap-2 !text-encre hover:!text-accent" rel="noopener">
+            <a href={DEPOT} className="ui mt-12 inline-flex items-center gap-2 text-encre hover:text-accent" rel="noopener">
               <Logo nom="GitHub" className="size-4" />
               Tout le détail sur GitHub ↗
             </a>

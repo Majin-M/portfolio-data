@@ -245,7 +245,7 @@ export default function PageEntrepotSql() {
                       key={c.nom}
                       className={`border bg-fond-2 p-4 ${c.nom === "Gold" ? "border-accent" : "border-trait-fort"}`}
                     >
-                      <p className="label !text-encre">{c.nom}</p>
+                      <p className="label text-encre">{c.nom}</p>
                       <p className="mt-1 text-sm text-encre-2">{c.role}</p>
                       <ul className="mt-3 space-y-0.5 border-t border-trait pt-3 font-donnees text-xs">
                         {c.objets.map((o) => (
@@ -586,7 +586,7 @@ export default function PageEntrepotSql() {
               </Depliable>
             </div>
 
-            <a href={DEPOT} className="ui mt-12 inline-flex items-center gap-2 !text-encre hover:!text-accent" rel="noopener">
+            <a href={DEPOT} className="ui mt-12 inline-flex items-center gap-2 text-encre hover:text-accent" rel="noopener">
               <Logo nom="GitHub" className="size-4" />
               Tout le détail sur GitHub ↗
             </a>

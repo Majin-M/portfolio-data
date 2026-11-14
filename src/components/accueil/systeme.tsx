@@ -334,7 +334,7 @@ export function SystemeAccueil({
       />
 
       <div className="relative mx-auto w-full max-w-7xl px-4 pt-8 pb-16 sm:px-8">
-        <h2 id="projets" className="mb-6 font-donnees text-[0.75rem] tracking-[0.18em] text-[#8fdcee]/80 uppercase">
+        <h2 id="projets" className="mx-auto mb-6 max-w-6xl sm:px-0 lg:px-8 font-donnees text-[0.75rem] tracking-[0.18em] text-[#8fdcee]/80 uppercase">
           Projets
         </h2>
 

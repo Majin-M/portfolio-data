@@ -32,11 +32,11 @@ export default function APropos() {
     <Espace>
       <Conteneur className="pt-10 sm:pt-16">
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-trait-fort pb-3">
-          <p className="label !text-accent">À propos · fiche de compétences</p>
+          <p className="label text-accent">À propos · fiche de compétences</p>
         </div>
 
         <div className="mt-8 grid items-start gap-6 lg:grid-cols-12">
-          <div className="lg:sticky lg:top-6 lg:col-span-4">
+          <div className="lg:sticky lg:top-20 lg:col-span-4">
             <PanneauIdentite chiffres={chiffresFiche()} />
           </div>
           <div className="min-w-0 lg:col-span-8">

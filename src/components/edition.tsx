@@ -46,7 +46,7 @@ export function Ouverture({
       {halo && <div aria-hidden className="halo pointer-events-none absolute inset-0" />}
       <Conteneur className="relative pt-8 pb-16 sm:pt-12">
         <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-trait-fort pb-3">
-          <Link href="/projets" transitionTypes={["remonter"]} className="label !text-accent hover:!text-encre">
+          <Link href="/projets" transitionTypes={["remonter"]} className="label text-accent hover:text-encre">
             {identifiant}
           </Link>
           <p className="label">{source}</p>
@@ -75,7 +75,7 @@ export function Ouverture({
                 <ul className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2">
                   {liens.map((l) => (
                     <li key={l.href} className="flex">
-                      <a href={l.href} className="ui inline-flex items-center gap-2 !text-encre hover:!text-accent" rel="noopener">
+                      <a href={l.href} className="ui inline-flex items-center gap-2 text-encre hover:text-accent" rel="noopener">
                         {l.href.includes("github.com") && <Logo nom="GitHub" className="size-4" />}
                         {l.label} ↗
                       </a>
@@ -103,7 +103,7 @@ export function Ouverture({
 export function Chapitre({ numero, titre, children }: { numero: string; titre: string; children?: ReactNode }) {
   return (
     <Revele className="max-w-3xl">
-      <p className="label !text-accent">{numero}</p>
+      <p className="label text-accent">{numero}</p>
       <h2 className="mt-3 font-texte text-4xl leading-[1.02] font-medium tracking-tight sm:text-6xl">{titre}</h2>
       {children && <div className="mt-6 text-xl leading-snug text-encre-2">{children}</div>}
     </Revele>
@@ -160,7 +160,7 @@ export function Figure({
   return (
     <figure className="border-t border-trait-fort pt-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
-        <p className="label !text-accent">Fig. {numero}</p>
+        <p className="label text-accent">Fig. {numero}</p>
         {source && <p className="label">{source}</p>}
       </div>
       {titre && <h3 className="mt-3 mb-5 max-w-3xl font-texte text-xl leading-snug font-medium sm:text-2xl">{titre}</h3>}

@@ -182,7 +182,7 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
             className="mt-1 w-full border-0 border-b-2 border-trait-fort bg-transparent py-2 font-donnees text-3xl tracking-wide text-encre uppercase placeholder:text-encre-3 focus:border-accent focus:outline-none focus-visible:outline-none sm:text-4xl"
           />
         </div>
-        <button type="submit" className="ui shrink-0 border border-trait-fort px-5 py-3 !text-encre hover:border-accent">
+        <button type="submit" className="ui presse shrink-0 border border-trait-fort px-5 py-3 text-encre hover:border-accent">
           Afficher
         </button>
       </form>
@@ -192,7 +192,7 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
           <p className="text-sm text-encre-2">{message}</p>
         ) : suggestions.length > 0 ? (
           <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="ui text-sm !text-encre-3">Suggestions</span>
+            <span className="ui text-sm text-encre-3">Suggestions</span>
             {suggestions.map((s) => (
               <button
                 key={s.cle}
@@ -206,7 +206,7 @@ export function RecherchePrenom({ totaux, premiere, derniere, prenomInitial, ser
           </p>
         ) : (
           <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="ui text-sm !text-encre-3">Exemples</span>
+            <span className="ui text-sm text-encre-3">Exemples</span>
             {exemples.map((e) => (
               <button
                 key={e}

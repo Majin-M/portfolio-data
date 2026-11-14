@@ -63,7 +63,7 @@ export function LiensProfil() {
         <li key={l.href}>
           <a
             href={versionner(l.href)}
-            className="ui inline-flex items-center gap-2 border border-trait-fort px-3 py-1.5 !text-encre hover:border-accent hover:!text-accent"
+            className="ui presse inline-flex items-center gap-2 border border-trait-fort px-3 py-1.5 text-encre hover:border-accent hover:text-accent"
             rel="noopener"
           >
             <Logo nom={l.label.startsWith("CV") ? "CV" : l.label} />
@@ -109,7 +109,7 @@ export function PanneauIdentite({ chiffres }: { chiffres: ChiffreFiche[] }) {
         <Portrait />
         <div className="min-w-0">
           <h1 className="font-texte text-3xl leading-[1.02] font-medium tracking-tight">{IDENTITE.nom}</h1>
-          <p className="mt-2 label !text-accent">{IDENTITE.titre}</p>
+          <p className="mt-2 label text-accent">{IDENTITE.titre}</p>
         </div>
       </div>
       <p className="mt-5 text-lg leading-snug text-encre-2">{IDENTITE.phrase}</p>

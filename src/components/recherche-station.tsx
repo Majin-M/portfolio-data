@@ -200,14 +200,14 @@ export function RechercheStation({ carburantInitial, rayonInitial, referenceInit
                 spellCheck={false}
                 className="min-w-0 flex-1 bg-transparent px-4 py-3 text-lg text-encre placeholder:text-encre-3 focus:outline-none"
               />
-              <button type="submit" className="ui shrink-0 bg-accent px-5 font-medium !text-fond hover:opacity-90">
+              <button type="submit" className="ui presse shrink-0 bg-accent px-5 font-medium text-fond hover:bg-encre">
                 Chercher
               </button>
             </div>
             <button
               type="button"
               onClick={localiser}
-              className="ui inline-flex shrink-0 items-center justify-center gap-2 border border-trait-fort px-5 py-3 !text-encre hover:border-accent"
+              className="ui inline-flex shrink-0 items-center justify-center gap-2 border border-trait-fort px-5 py-3 text-encre hover:border-accent"
             >
               <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
                 <circle cx="12" cy="12" r="7" />
@@ -281,7 +281,7 @@ export function RechercheStation({ carburantInitial, rayonInitial, referenceInit
               <div className="lg:col-span-5">
                 {premier ? (
                   <div className="border-2 border-accent p-6">
-                    <p className="label !text-accent">La moins chère</p>
+                    <p className="label text-accent">La moins chère</p>
                     <p className="mt-3 font-donnees text-6xl leading-none tracking-tight text-encre">{euros(premier.prix.prix)}</p>
                     <p className="mt-4 text-lg leading-snug text-encre">{joliNom(premier.station.adresse)}</p>
                     <p className="text-encre-2">{joliNom(premier.station.ville)}</p>
@@ -290,7 +290,7 @@ export function RechercheStation({ carburantInitial, rayonInitial, referenceInit
                     </p>
                     <a
                       href={itineraire(premier.station)}
-                      className="ui mt-5 inline-block border border-trait-fort px-4 py-2 !text-encre hover:border-accent"
+                      className="ui mt-5 inline-block border border-trait-fort px-4 py-2 text-encre hover:border-accent"
                       rel="noopener"
                     >
                       Voir sur la carte ↗

@@ -7,7 +7,7 @@ export function SiteFooter() {
   return (
     <footer className="mt-24 border-t border-trait">
       <Conteneur className="flex flex-col gap-3 py-8 sm:flex-row sm:items-baseline sm:justify-between">
-        <p className="label max-w-xl normal-case tracking-normal">
+        <p className="max-w-xl text-sm text-encre-3">
           Site statique alimenté par les exports des pipelines.
         </p>
         <p className="label flex shrink-0 items-center gap-2">

@@ -11,7 +11,7 @@ export function NavLien({ href, children }: { href: string; children: ReactNode 
     <Link
       href={href}
       aria-current={actif ? "page" : undefined}
-      className={`ui ${actif ? "!text-encre underline decoration-accent decoration-1 underline-offset-[6px]" : ""}`}
+      className={`ui ${actif ? "text-encre underline decoration-accent decoration-1 underline-offset-[6px]" : ""}`}
     >
       {children}
     </Link>

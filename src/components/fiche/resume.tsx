@@ -17,15 +17,18 @@ export function FicheResume({ chiffres }: { chiffres: ChiffreFiche[] }) {
             <h1 id="qui" className="font-texte text-4xl leading-[1.02] font-medium tracking-tight sm:text-5xl">
               {IDENTITE.nom}
             </h1>
-            <p className="mt-2 label !text-accent">{IDENTITE.titre}</p>
+            <p className="mt-2 label text-accent">{IDENTITE.titre}</p>
           </div>
         </div>
         <p className="mt-6 max-w-xl text-xl leading-snug text-encre-2">{IDENTITE.phrase}</p>
         <Link
           href="/a-propos"
-          className="mt-7 inline-flex items-center bg-accent px-6 py-3.5 text-lg font-medium text-fond transition-transform hover:-translate-y-0.5"
+          className="presse group mt-7 inline-flex items-center gap-2 bg-accent px-5 py-3 font-medium text-fond hover:bg-encre"
         >
           Découvrir mon parcours et mes compétences
+          <span aria-hidden className="transition-transform duration-150 group-hover:translate-x-0.5">
+            →
+          </span>
         </Link>
         <ul className="mt-5 flex flex-wrap gap-3">
           <LiensProfil />
