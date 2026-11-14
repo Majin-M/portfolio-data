@@ -63,6 +63,12 @@ export const E85_HAUT = [
 /** Début du récit de la hausse : le prix médian du gazole est comparé à celui de ce jour. */
 export const DEBUT_HAUSSE = "2026-01-01";
 
+/**
+ * Un carburant n'entre dans le surcoût autoroute que s'il se compare dans au moins
+ * ce nombre de départements : le SP95 n'est presque plus vendu sur autoroute.
+ */
+export const DEPARTEMENTS_MIN_SURCOUT = 50;
+
 export const SEUILS_SUSPECTS = { e85: 1.5, gplc: 1.8 };
 
 export const TESTS_EN_ECHEC = [

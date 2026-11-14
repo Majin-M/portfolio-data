@@ -1,8 +1,8 @@
 "use client";
 
-// Évolution quotidienne du prix médian au litre, une courbe par carburant.
-// Le survol (ou les flèches du clavier) donne le prix de chaque courbe ce
-// jour-là et le nombre de stations qui ont servi à le calculer.
+// Évolution quotidienne d'un prix au litre (prix médian, écart de prix), une
+// courbe par carburant. Le survol (ou les flèches du clavier) donne la valeur de
+// chaque courbe ce jour-là et l'effectif qui a servi à la calculer.
 
 import { scaleLinear, scaleUtc } from "d3-scale";
 import { line } from "d3-shape";
@@ -22,6 +22,11 @@ const JOUR_MS = 86_400_000;
 const moisCourt = new Intl.DateTimeFormat("fr-FR", { timeZone: "UTC", month: "short" });
 const jourLong = new Intl.DateTimeFormat("fr-FR", { timeZone: "UTC", dateStyle: "long" });
 
+/** Prix au litre ; un écart positif porte son signe : « +0,150 € ». */
+function formateur(signe: boolean) {
+  return (v: number, decimales = 3) => (signe && v > 0 ? "+" : "") + euros(v, decimales);
+}
+
 function instant(jour: string): number {
   return Date.parse(`${jour}T00:00:00Z`);
 }
@@ -31,18 +36,25 @@ export function CourbePrix({
   description,
   hauteur = 340,
   reperes = [],
+  unite = "stations",
+  zero = false,
 }: {
   series: SeriePrix[];
   /** Résumé lu par les lecteurs d'écran. */
   description: string;
   hauteur?: number;
   reperes?: RepereJour[];
+  /** Ce que compte l'effectif de chaque point, dans la bulle. */
+  unite?: string;
+  /** L'axe inclut 0, tracé plus fort : pour un écart, le signe compte. */
+  zero?: boolean;
 }) {
   const conteneur = useRef<HTMLDivElement>(null);
   const svg = useRef<SVGSVGElement>(null);
   const [largeur, setLargeur] = useState(LARGEUR_INITIALE);
   const [survol, setSurvol] = useState<number | null>(null);
   const visible = useVisible(conteneur);
+  const fmt = formateur(zero);
 
   useEffect(() => {
     const element = conteneur.current;
@@ -67,13 +79,17 @@ export function CourbePrix({
     .domain([instant(jours[0]), instant(jours[jours.length - 1])])
     .range([marge.gauche, largeur - marge.droite]);
   const y = scaleLinear()
-    .domain([Math.min(...prix), Math.max(...prix)])
+    .domain(zero ? [Math.min(0, ...prix), Math.max(0, ...prix)] : [Math.min(...prix), Math.max(...prix)])
     .nice(5)
     .range([marge.haut + hauteurTrace, marge.haut]);
   const ticksY = y.ticks(5);
 
-  // Un repère par mois (un sur trois sur écran étroit), l'année sous janvier.
-  const mois = jours.filter((j) => j.endsWith("-01")).filter((j) => !etroit || (Number(j.slice(5, 7)) - 1) % 3 === 0);
+  // Un repère par mois s'il y a la place, sinon tous les 2, 3 ou 6 mois ; l'année
+  // sous janvier et sous le premier repère.
+  const premiersDuMois = jours.filter((j) => j.endsWith("-01"));
+  const pxParMois = (largeur - marge.gauche - marge.droite) / Math.max(1, premiersDuMois.length);
+  const pasMois = pxParMois >= 40 ? 1 : pxParMois >= 20 ? 2 : pxParMois >= 13 ? 3 : 6;
+  const mois = premiersDuMois.filter((j) => (Number(j.slice(5, 7)) - 1) % pasMois === 0);
 
   const trace = line<PointPrix>()
     .x((p) => x(instant(p.jour)))
@@ -154,7 +170,7 @@ export function CourbePrix({
                 x2={largeur - marge.droite}
                 y1={y(t)}
                 y2={y(t)}
-                stroke="var(--trait)"
+                stroke={zero && t === 0 ? "var(--trait-fort)" : "var(--trait)"}
                 strokeWidth={1}
                 shapeRendering="crispEdges"
               />
@@ -167,7 +183,7 @@ export function CourbePrix({
                 fill="var(--encre-3)"
                 style={{ fontVariantNumeric: "tabular-nums" }}
               >
-                {euros(t, 2)}
+                {fmt(t, 2)}
               </text>
             </g>
           ))}
@@ -220,7 +236,7 @@ export function CourbePrix({
           {finsLisibles &&
             fins.map((f) => (
               <text key={f.id} className="apres-trace" x={f.px + 9} y={f.py} dy="0.32em" fontSize={11} fill="var(--encre-2)">
-                {f.label} <tspan fill="var(--encre)">{euros(f.prix)}</tspan>
+                {f.label} <tspan fill="var(--encre)">{fmt(f.prix)}</tspan>
               </text>
             ))}
 
@@ -242,7 +258,7 @@ export function CourbePrix({
                   strokeWidth={4}
                   paintOrder="stroke"
                 >
-                  {euros(r.p.prix)}
+                  {fmt(r.p.prix)}
                   {!etroit && <tspan fill="var(--encre-3)" fontSize={11}>{` · ${r.texte}`}</tspan>}
                 </text>
               </g>
@@ -310,10 +326,10 @@ export function CourbePrix({
                 return (
                   <li key={s.id} className="flex items-center gap-2 whitespace-nowrap">
                     <span aria-hidden className="inline-block h-0.5 w-3 rounded-full" style={{ background: s.couleur }} />
-                    <span className="font-medium text-encre">{p ? euros(p.prix) : "n/d"}</span>
+                    <span className="font-medium text-encre">{p ? fmt(p.prix) : "n/d"}</span>
                     <span className="text-encre-3">
                       {s.label}
-                      {p ? ` · ${nombre(p.stations)} stations` : ""}
+                      {p ? ` · ${nombre(p.stations)} ${unite}` : ""}
                     </span>
                   </li>
                 );
@@ -323,13 +339,14 @@ export function CourbePrix({
         )}
       </div>
 
-      <TableauPrix series={series} />
+      <TableauPrix series={series} signe={zero} />
     </div>
   );
 }
 
 /** Vue tableau : une ligne par semaine (le lundi), chaque valeur lisible sans survol. */
-function TableauPrix({ series }: { series: SeriePrix[] }) {
+function TableauPrix({ series, signe }: { series: SeriePrix[]; signe: boolean }) {
+  const fmt = formateur(signe);
   const lundis = series[0].points.filter((p) => new Date(instant(p.jour)).getUTCDay() === 1).map((p) => p.jour);
   const parJour = series.map((s) => new Map(s.points.map((p) => [p.jour, p])));
   return (
@@ -357,7 +374,7 @@ function TableauPrix({ series }: { series: SeriePrix[] }) {
                   const p = parJour[i].get(j);
                   return (
                     <td key={s.id} className="num">
-                      {p ? euros(p.prix) : ""}
+                      {p ? fmt(p.prix) : ""}
                     </td>
                   );
                 })}

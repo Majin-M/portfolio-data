@@ -12,6 +12,7 @@ import {
   DEPOT,
   DONNEES_PUBLIEES,
   DEBUT_HAUSSE,
+  DEPARTEMENTS_MIN_SURCOUT,
   E85_HAUT,
   LOT_NUIT,
   MESURE_LE,
@@ -22,6 +23,7 @@ import {
 import { JOURS_PRIX_RECENT, euros, jourDonnees } from "@/lib/carburant-commun";
 import {
   lireMedianesQuotidiennes,
+  lireSurcoutAutoroute,
   lireMetadataCarburant,
   lireStationsCarburant,
   medianesParCarburant,
@@ -67,6 +69,23 @@ export default function PagePrixCarburants() {
   const ecartE10 = dernierJour.prix - (e10ParJour.get(dernierJour.jour) ?? dernierJour.prix);
   // « 1er janvier 2026 » : l'ordinal que Intl n'écrit pas.
   const jourFr = (iso: string) => date(iso).replace(/^1 /, "1er ");
+
+  // Surcoût autoroute, à la même date et dans le même département.
+  const surcouts = lireSurcoutAutoroute();
+  const surcoutsComparables = surcouts
+    .filter((s) => s.departements >= DEPARTEMENTS_MIN_SURCOUT)
+    .sort((a, b) => b.ecart - a.ecart);
+  const surcoutGazole = surcouts.find((s) => s.carburantId === 1)!;
+  const surcoutE10 = surcouts.find((s) => s.carburantId === 5)!;
+  // Le récit compare l'année de la hausse à la précédente, quelle que soit la date du build.
+  const anneeHausse = DEBUT_HAUSSE.slice(0, 4);
+  const anneeAvant = String(Number(anneeHausse) - 1);
+  const periode = (points: { jour: string }[]) => `${points[0].jour.slice(0, 4)}-${points[points.length - 1].jour.slice(0, 4)}`;
+  const periodeSurcout = periode(surcoutGazole.points);
+  const surcoutPendantHausse = surcoutGazole.points.filter((p) => p.jour.startsWith(anneeHausse));
+  const surcoutMin = surcoutPendantHausse.reduce((a, b) => (b.prix < a.prix ? b : a));
+  const sansSurcout = surcouts.filter((s) => s.departements < DEPARTEMENTS_MIN_SURCOUT);
+  const signe = (v: number, decimales = 3) => (v > 0 ? "+" : "") + euros(v, decimales);
 
   return (
     <Espace>
@@ -153,7 +172,7 @@ export default function PagePrixCarburants() {
               <Figure
                 numero="01"
                 titre="Prix médian au litre, jour par jour"
-                source="mart_prix_medians_quotidiens · 2025-2026"
+                source={`mart_prix_medians_quotidiens · ${periode(gazole)}`}
                 legende={`Chaque jour, le prix en vigueur dans chaque station : son dernier relevé, s'il a ${JOURS_PRIX_RECENT} jours ou moins. Chaque station compte une fois, quel que soit son nombre de relevés ; les prix suspects sont écartés. Survolez la courbe pour lire un jour.`}
               >
                 <CourbePrix
@@ -169,7 +188,68 @@ export default function PagePrixCarburants() {
           </section>
 
           <section className="border-t border-trait py-24">
-            <Chapitre numero="L'histoire · 2" titre="Un relevé n'est pas un changement">
+            <Chapitre
+              numero="L'histoire · 2"
+              titre={`L'autoroute, ${decimal(surcoutGazole.ecart * 100, 0)} centimes de plus par litre de gazole`}
+            >
+              <p>
+                Le même jour, dans le même département, une station d&apos;autoroute vend le gazole{" "}
+                {euros(surcoutGazole.ecart)} plus cher qu&apos;une station de route, en médiane, soit{" "}
+                {pourcent(surcoutGazole.part, 1)} de plus. Comparer à département égal sépare l&apos;effet de l&apos;autoroute de celui de la région traversée.
+              </p>
+            </Chapitre>
+            <div className="mt-14 grid gap-14 lg:grid-cols-2">
+              <Revele className="min-w-0 lg:col-span-2">
+                <Figure
+                  numero="02"
+                  titre="Écart de prix entre autoroute et route, jour par jour"
+                  source={`mart_ecarts_autoroute · ${periodeSurcout}`}
+                  legende="Chaque jour, dans chaque département qui a les deux types de stations : prix médian en vigueur sur autoroute moins prix médian sur route. La courbe suit la médiane de ces écarts. Au-dessus de zéro, l'autoroute est plus chère."
+                >
+                  <CourbePrix
+                    series={[
+                      { id: "gazole", label: "Gazole", couleur: "var(--serie-f)", points: surcoutGazole.points },
+                      { id: "e10", label: "E10", couleur: "var(--serie-m)", points: surcoutE10.points },
+                    ]}
+                    description={`Écart médian de prix entre stations d'autoroute et de route du même département, jour par jour, pour le gazole et l'E10. Gazole : ${signe(surcoutGazole.ecart)} en médiane sur la période, ${signe(surcoutMin.prix)} au plus bas, le ${jourFr(surcoutMin.jour)}.`}
+                    unite="départements"
+                    zero
+                    reperes={[{ serie: "gazole", jour: surcoutMin.jour, texte: jourFr(surcoutMin.jour) }]}
+                  />
+                </Figure>
+              </Revele>
+              <div className="min-w-0">
+                <p className="label mb-6">Écart médian par carburant, {periodeSurcout}</p>
+                <Barres
+                  barres={surcoutsComparables.map((s) => ({
+                    label: s.nom,
+                    part: s.ecart,
+                    detail: `${pourcent(s.part, 1)} · ${nombre(s.departements)} départements`,
+                  }))}
+                  description="Écart médian de prix entre stations d'autoroute et de route du même département, par carburant"
+                  max={Math.max(...surcoutsComparables.map((s) => s.ecart))}
+                  formater={(v) => signe(v)}
+                />
+              </div>
+              <div className="min-w-0">
+                <p className="max-w-xl text-xl leading-snug text-encre-2">
+                  L&apos;autoroute est plus chère dans {pourcent(surcoutGazole.partCasPlusChere, 0)} des comparaisons pour le
+                  gazole. L&apos;écart s&apos;est réduit pendant la flambée de {anneeHausse} : {signe(surcoutGazole.parAnnee[anneeAvant])} en
+                  médiane en {anneeAvant}, {signe(surcoutGazole.parAnnee[anneeHausse])} en {anneeHausse}, jusqu&apos;à {signe(surcoutMin.prix)} le {jourFr(surcoutMin.jour)}
+                  {surcoutMin.prix < 0 ? " : ce jour-là, la route était un peu plus chère." : "."}
+                  {sansSurcout.length > 0 && (
+                    <>
+                      {" "}
+                      {sansSurcout.map((s) => s.nom).join(", ")} : trop peu de stations d&apos;autoroute pour comparer.
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section className="border-t border-trait py-24">
+            <Chapitre numero="L'histoire · 3" titre="Un relevé n'est pas un changement">
               <p>
                 Le fichier officiel note le prix de chaque station plusieurs fois par jour, souvent sans qu&apos;il ait bougé.
                 Pour garder l&apos;historique des vrais changements, il faut d&apos;abord écarter les répétitions.
@@ -203,7 +283,7 @@ qualify prix_litre is distinct from lag(prix_litre) over (
           </section>
 
           <section className="border-t border-trait py-24">
-            <Chapitre numero="L'histoire · 3" titre="Quelle heure est-il dans le fichier ?">
+            <Chapitre numero="L'histoire · 4" titre="Quelle heure est-il dans le fichier ?">
               <p>
                 Les relevés sont datés sans fuseau horaire. Heure de Paris ou UTC ? La réponse change l&apos;ordre des relevés à
                 chaque changement d&apos;heure, et l&apos;âge des prix affichés.
@@ -220,7 +300,7 @@ qualify prix_litre is distinct from lag(prix_litre) over (
               </div>
               <div className="min-w-0 lg:col-span-7">
               <Figure
-                numero="02"
+                numero="03"
                 titre="Le lot de 01:17 autour des changements d'heure 2025"
                 source="raw.prix · relevés par tranche horaire"
                 legende="Relevés entre 01:10 et 01:25, et entre 02:10 et 02:25. Le 27 octobre, le lot a tourné à 00:17."
@@ -263,7 +343,7 @@ qualify prix_litre is distinct from lag(prix_litre) over (
           </section>
 
           <section className="border-t border-trait py-24">
-            <Chapitre numero="L'histoire · 4" titre="Des prix d'essence dans la case E85">
+            <Chapitre numero="L'histoire · 5" titre="Des prix d'essence dans la case E85">
               <p>
                 L&apos;E85 coûte environ 0,85 € le litre. Pourtant, quelques stations y affichent des prix de 1,60 à 2,30 € : le
                 prix de l&apos;essence, saisi dans la mauvaise case.
@@ -271,7 +351,7 @@ qualify prix_litre is distinct from lag(prix_litre) over (
             </Chapitre>
             <div className="mt-14 grid gap-14 lg:grid-cols-2">
               <Figure
-                numero="03"
+                numero="04"
                 titre="Relevés d'E85 au-dessus de 1,20 €"
                 source="stg_roulez_eco__prix · 2025-2026"
                 legende={`Un creux net à 1,50 € sépare les deux groupes : au-delà, le prix est marqué suspect. Même règle pour le GPLc au-delà de ${euros(SEUILS_SUSPECTS.gplc, 2)}.`}

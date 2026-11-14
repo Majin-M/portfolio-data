@@ -40,7 +40,7 @@ export function Barres({
                   style={{ width: `${(b.part / borne) * 100}%`, background: couleur, "--delai": `${i * 90}ms` } as CSSProperties}
                 />
               </span>
-              <span className="w-16 shrink-0 text-right font-donnees text-sm text-encre tabular-nums">{formater(b.part)}</span>
+              <span className="w-20 shrink-0 whitespace-nowrap text-right font-donnees text-sm text-encre tabular-nums">{formater(b.part)}</span>
             </span>
           </li>
         ))}

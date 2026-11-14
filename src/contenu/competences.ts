@@ -111,7 +111,7 @@ export const USAGES: Usage[] = [
     outil: "dbt",
     projet: "prix-carburants",
     etapes: ["transformation", "qualite"],
-    usage: "2 modèles de staging, 4 marts, 60 tests ; chacun des 20 tests singuliers vu en échec sur un défaut injecté",
+    usage: "2 modèles de staging, 1 vue intermédiaire, 5 marts, 72 tests ; chacun des 20 tests singuliers vu en échec sur un défaut injecté",
     preuve: `${C}/dbt`,
     statut: "production",
   },
@@ -395,7 +395,7 @@ export const PARCOURS: Jalon[] = [
     type: "projet",
     titre: "Prix des carburants",
     lieu: "pipeline quotidien en production",
-    detail: "ingestion chaque matin, historisation, 60 tests",
+    detail: "ingestion chaque matin, historisation, 72 tests",
     href: "/projets/prix-carburants",
   },
   {

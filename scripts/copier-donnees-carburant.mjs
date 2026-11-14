@@ -10,7 +10,7 @@ import { resolve } from "node:path";
 
 const source = resolve(process.argv[2] ?? "../Carburant/exports");
 const cible = resolve("public/data/carburant");
-const FICHIERS = ["metadata.json", "prix_actuels.json", "prix_medians.json"];
+const FICHIERS = ["metadata.json", "prix_actuels.json", "prix_medians.json", "surcout_autoroute.json"];
 
 for (const fichier of FICHIERS) {
   if (!existsSync(resolve(source, fichier))) {

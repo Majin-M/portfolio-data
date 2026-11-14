@@ -59,6 +59,61 @@ export function lireMedianesQuotidiennes(): SerieMediane[] {
   }));
 }
 
+type FichierSurcout = {
+  reference_at: string;
+  colonnes: string[];
+  carburants: Record<
+    string,
+    {
+      ecart_median: number;
+      ecart_median_part: number;
+      part_cas_autoroute_plus_chere: number;
+      cas: number;
+      departements: number;
+      par_annee: Record<string, number>;
+    }
+  >;
+  /** Par identifiant de carburant : [jour, écart médian, nombre de départements comparés], un par jour. */
+  series: Record<string, [string, number, number][]>;
+};
+
+export type SurcoutCarburant = {
+  carburantId: number;
+  nom: string;
+  /** Écart médian autoroute - route, même jour et même département, en euros par litre. */
+  ecart: number;
+  /** Même écart, en part du prix sur route. */
+  part: number;
+  partCasPlusChere: number;
+  departements: number;
+  parAnnee: Record<string, number>;
+  /** Écart médian de chaque jour ; « stations » compte ici les départements comparés. */
+  points: { jour: string; prix: number; stations: number }[];
+};
+
+/**
+ * Surcoût des stations d'autoroute par rapport aux stations de route, à la même
+ * date et dans le même département (mart_ecarts_autoroute).
+ */
+export function lireSurcoutAutoroute(): SurcoutCarburant[] {
+  const fichier = lire<FichierSurcout>("surcout_autoroute.json");
+  const i = Object.fromEntries(fichier.colonnes.map((c, k) => [c, k]));
+  return Object.entries(fichier.carburants).map(([id, r]) => ({
+    carburantId: Number(id),
+    nom: CARBURANTS[Number(id)],
+    ecart: r.ecart_median,
+    part: r.ecart_median_part,
+    partCasPlusChere: r.part_cas_autoroute_plus_chere,
+    departements: r.departements,
+    parAnnee: r.par_annee,
+    points: (fichier.series[id] ?? []).map((j) => ({
+      jour: j[i.jour] as string,
+      prix: j[i.ecart_median] as number,
+      stations: j[i.departements] as number,
+    })),
+  }));
+}
+
 export type MedianeCarburant = { carburantId: number; nom: string; mediane: number; stations: number };
 
 /**
