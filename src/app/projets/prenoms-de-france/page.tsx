@@ -16,11 +16,12 @@ import {
   compterFichiersSeries,
   lireDiversite,
   lireEcartRegions,
+  lireEffetAccents,
   lireMetadata,
   lirePaysage,
   type FichierSeries,
 } from "@/lib/prenoms";
-import { sansAccents, type LigneDiversite, type Sexe } from "@/lib/prenoms-commun";
+import { initiale as initialeSansAccent, sansAccents, type LigneDiversite, type Sexe } from "@/lib/prenoms-commun";
 
 export const metadata: Metadata = {
   title: "Prénoms de France, 1900-2025",
@@ -37,6 +38,11 @@ const REPERES: Annotation[] = [
   { x: 1946, label: "1946 · exhaustivité garantie", court: "1946" },
   { x: 2012, label: "2012 · Mayotte", court: "2012" },
 ];
+
+// Histoire des accents : l'exemple suivi, l'année où les accents reviennent, début du graphique.
+const EXEMPLE_ACCENTS = "LÉA";
+const ANNEE_RETOUR_ACCENTS = 2010;
+const DEBUT_EXEMPLE = 1980;
 
 // Naissances de 2020 : mesure faite pendant l'exploration (NOTES.md du dépôt).
 const NAISSANCES_2020_FICHIER = 677665;
@@ -82,6 +88,20 @@ export default function PagePrenoms() {
   const mFin = ligne(derniere, "M");
   const pic = diversite.filter((l) => l.sexe === "M").reduce((a, b) => (b.part_top_10 > a.part_top_10 ? b : a));
   const marie1900 = lireSeries("M").MARIE?.F?.find(([a]) => a === premiere)?.[1];
+  // Histoire des accents : LÉA seule, puis toutes ses orthographes additionnées.
+  const effetAccents = lireEffetAccents();
+  const fichierL = lireSeries(initialeSansAccent(EXEMPLE_ACCENTS));
+  const naissancesF = (cle: string) => (fichierL[cle].F ?? []).reduce((t, [, n]) => t + n, 0);
+  const orthographesExemple = Object.keys(fichierL)
+    .filter((cle) => sansAccents(cle) === sansAccents(EXEMPLE_ACCENTS) && fichierL[cle].F)
+    .sort((a, b) => naissancesF(b) - naissancesF(a));
+  const exempleSeul = new Map(fichierL[EXEMPLE_ACCENTS].F);
+  const exempleTotal = new Map<number, number>();
+  for (const cle of orthographesExemple) for (const [a, n] of fichierL[cle].F ?? []) exempleTotal.set(a, (exempleTotal.get(a) ?? 0) + n);
+  const anneesExemple = Array.from({ length: derniere - DEBUT_EXEMPLE + 1 }, (_, k) => DEBUT_EXEMPLE + k);
+  const variation = (sexe: Sexe, colonne: "orthographes" | "formes") =>
+    effetAccents.diversite[sexe].get(ANNEE_RETOUR_ACCENTS)![colonne] - effetAccents.diversite[sexe].get(ANNEE_RETOUR_ACCENTS - 1)![colonne];
+  const signe = (n: number) => (n > 0 ? `+${nombre(n)}` : n < 0 ? `−${nombre(-n)}` : "0");
   const ecartDebut = ecart[0];
   const ecartFin = ecart[ecart.length - 1];
 
@@ -297,12 +317,73 @@ export default function PagePrenoms() {
           </section>
 
           <section className="border-t border-trait py-24">
+            <Chapitre numero="L'histoire · 4" titre="Quand l'INSEE change ses accents">
+              <p>
+                Le fichier compte chaque orthographe à part. Or la saisie des accents a changé deux fois : en 1999, beaucoup
+                disparaissent ; en 2010-2012, ils reviennent. Des naissances passent alors d&apos;une orthographe à l&apos;autre
+                sans que les parents aient changé de choix.
+              </p>
+            </Chapitre>
+            <Revele className="mt-14">
+              <GrandsChiffres
+                chiffres={[{ valeur: effetAccents.fauxSauts, legende: "prénoms dont la courbe saute à tort" }]}
+              />
+              <p className="mt-6 max-w-xl text-encre-2">
+                Leur orthographe la plus donnée gagne ou perd plus de 30 % en un an, alors que le total de leurs orthographes
+                bouge de moins de 10 % (filles et garçons comptés à part). Ces sauts tombent en{" "}
+                {effetAccents.anneesFauxSauts.map((a) => `${a.annee} (${a.prenoms} prénom${a.prenoms > 1 ? "s" : ""})`).join(", ")},
+                un même prénom pouvant sauter plusieurs années. En {ANNEE_RETOUR_ACCENTS}, le fichier compte {signe(variation("F", "orthographes"))} prénoms de filles par
+                rapport à l&apos;année précédente ; sans les accents, {signe(variation("F", "formes"))}.
+              </p>
+            </Revele>
+            <div className="mt-16">
+              <Figure
+                numero="03"
+                titre={`${EXEMPLE_ACCENTS} : ${nombre(exempleSeul.get(ANNEE_RETOUR_ACCENTS - 1) ?? 0)} naissances en ${ANNEE_RETOUR_ACCENTS - 1}, ${nombre(exempleSeul.get(ANNEE_RETOUR_ACCENTS) ?? 0)} en ${ANNEE_RETOUR_ACCENTS}. Toutes orthographes réunies, ${nombre(exempleTotal.get(ANNEE_RETOUR_ACCENTS - 1) ?? 0)} puis ${nombre(exempleTotal.get(ANNEE_RETOUR_ACCENTS) ?? 0)}`}
+                source="Séries nationales, filles"
+                legende={
+                  <>
+                    {orthographesExemple.join(", ")} additionnées. Dans la recherche ci-dessous, les orthographes d&apos;un
+                    prénom sont additionnées par défaut ; un bouton les sépare.
+                  </>
+                }
+              >
+                <Courbes
+                  format="nombre"
+                  hauteur={320}
+                  pasAnnees={10}
+                  description={`Naissances de ${EXEMPLE_ACCENTS} seule et de toutes ses orthographes, filles, ${DEBUT_EXEMPLE}-${derniere}`}
+                  annotations={[
+                    { x: 1999, label: "1999 · accents retirés", court: "1999" },
+                    { x: ANNEE_RETOUR_ACCENTS, label: `${ANNEE_RETOUR_ACCENTS} · accents rétablis`, court: String(ANNEE_RETOUR_ACCENTS) },
+                  ]}
+                  series={[
+                    // LÉA seule d'abord : la courbe additionnée, tracée par-dessus, reste visible là où elles se confondent.
+                    {
+                      id: "seule",
+                      label: `${EXEMPLE_ACCENTS} seule`,
+                      couleur: "var(--serie-neutre)",
+                      points: anneesExemple.map((a) => [a, exempleSeul.get(a) ?? 0] as [number, number]),
+                    },
+                    {
+                      id: "toutes",
+                      label: "Toutes les orthographes",
+                      couleur: "var(--serie-f)",
+                      points: anneesExemple.map((a) => [a, exempleTotal.get(a) ?? 0] as [number, number]),
+                    },
+                  ]}
+                />
+              </Figure>
+            </div>
+          </section>
+
+          <section className="border-t border-trait py-24">
             <Chapitre numero="À vous" titre="Tape ton prénom">
               <p>Chaque année depuis {premiere}, combien d&apos;enfants l&apos;ont reçu.</p>
             </Chapitre>
             <div className="mt-12">
               <Figure
-                numero="03"
+                numero="04"
                 source={`Séries nationales · ${nombre(metadata.lignes.series_exportees)} lignes publiées`}
                 legende={
                   <>
@@ -336,7 +417,7 @@ export default function PagePrenoms() {
             {statut && <div className="mt-8">{statut}</div>}
 
             <div className="mt-12">
-              <Figure numero="04" source={dbt ? `dbt ${dbt.version} · durées de la dernière exécution` : undefined}>
+              <Figure numero="05" source={dbt ? `dbt ${dbt.version} · durées de la dernière exécution` : undefined}>
                 <SchemaPipelinePrenoms durees={durees} fichiersSeries={fichiersSeries} />
               </Figure>
             </div>

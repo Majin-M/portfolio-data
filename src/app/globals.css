@@ -24,6 +24,9 @@
   --halo: rgb(212 112 63 / 0.1);
   --serie-f: #d4703f;
   --serie-m: #4f8fd9;
+  /* Série mise en retrait à côté d'une série d'accent (ex. une orthographe seule face
+     au total) : gris assez éloigné de --serie-f pour une vue normale (ΔE 18,8). */
+  --serie-neutre: #6b6862;
   /* Métaux des couches Medallion (projet entrepôt SQL) */
   --bronze: #cd7f32;
   --argent: #c7ccd1;
@@ -44,6 +47,7 @@
   --halo: rgb(169 82 42 / 0.08);
   --serie-f: #b0522a;
   --serie-m: #2f6db3;
+  --serie-neutre: #4a4843;
   --bronze: #8a5424;
   --argent: #5f6670;
   --or: #7a5a0e;

@@ -39,6 +39,8 @@ type Props = {
   jusqua?: number;
   reperes?: Repere[];
   tableau?: boolean;
+  /** Écart entre deux années graduées (par défaut 25, et 50 sur écran étroit). */
+  pasAnnees?: number;
 };
 
 const LARGEUR_INITIALE = 720;
@@ -90,6 +92,7 @@ export function Courbes({
   jusqua,
   reperes = [],
   tableau = true,
+  pasAnnees = 25,
 }: Props) {
   const conteneur = useRef<HTMLDivElement>(null);
   const svg = useRef<SVGSVGElement>(null);
@@ -140,7 +143,7 @@ export function Courbes({
 
   const ticksY = y.ticks(hauteur < 260 ? 4 : 5);
   const libellesY = graduationsY(format, ticksY);
-  const pasX = etroit ? 50 : 25;
+  const pasX = etroit ? pasAnnees * 2 : pasAnnees;
   const ticksX: number[] = [];
   for (let a = Math.ceil(xMin / pasX) * pasX; a <= xMax; a += pasX) ticksX.push(a);
 
