@@ -84,7 +84,7 @@ export default function PageInclusionFinanciere() {
               </div>
             </div>
           }
-          legendeVisuel={`Chaque pays n'a été enquêté qu'une année : l'écart entre deux pays est aussi un écart entre deux années, et rien ne permet de les séparer. Réponses dont la possession d'un compte est connue : ${nombre(DONNEES.lignesCibleConnue)} sur ${nombre(DONNEES.lignesNettoyees)} après nettoyage.`}
+          legendeVisuel={`Chaque pays n'a été enquêté qu'une année : l'écart entre deux pays est aussi un écart entre deux années, et rien ne permet de les séparer. ${nombre(DONNEES.lignesNettoyees)} réponses après nettoyage, toutes avec une réponse sur la possession d'un compte.`}
         />
 
         <Conteneur>
@@ -249,8 +249,8 @@ export default function PageInclusionFinanciere() {
           <section className="border-t border-trait py-24">
             <Chapitre numero="L'histoire · 3" titre="Le piège de la précision">
               <p>
-                Le modèle du dépôt a été entraîné sur toutes les données, sans mesure de performance. Évalué ici sur un jeu de
-                test mis de côté, il a l&apos;air excellent. Il ne l&apos;est pas.
+                Le dépôt évalue maintenant son modèle sur un jeu de test mis de côté, et publie ses mesures. À première vue,
+                il a l&apos;air excellent. Il ne l&apos;est pas.
               </p>
             </Chapitre>
             <Revele className="mt-14">
@@ -350,8 +350,8 @@ export default function PageInclusionFinanciere() {
           <section className="border-t border-trait-fort py-24">
             <Chapitre numero="Sous le capot" titre="Le pipeline">
               <p>
-                Un CSV brut, une analyse exploratoire dans un notebook, un CSV nettoyé, puis un modèle entraîné au démarrage
-                d&apos;une application Streamlit.
+                Un CSV brut, une analyse exploratoire dans un notebook, un CSV nettoyé et contrôlé, puis un modèle évalué,
+                entraîné une fois et chargé par une application Streamlit.
               </p>
             </Chapitre>
             <ol className="mt-12 grid gap-3 md:grid-cols-5">
@@ -361,10 +361,10 @@ export default function PageInclusionFinanciere() {
                 [
                   "Nettoyage",
                   "CSV nettoyé",
-                  `${DONNEES.manquantsTraites} valeurs manquantes remplacées, ${DONNEES.horsPeriodeRetirees} lignes hors période retirées`,
+                  `${DONNEES.manquantsTraites} valeurs manquantes traitées, ${DONNEES.controles} contrôles qualité automatiques`,
                 ],
-                ["Modèle", "src/model.py", `Random Forest, ${MODELE.arbres} arbres, ${MODELE.variables} variables`],
-                ["Usage", "app.py", "formulaire Streamlit, probabilité en temps réel"],
+                ["Modèle", "src/model.py", `Random Forest, ${MODELE.arbres} arbres, évalué puis sauvegardé`],
+                ["Usage", "app.py", "charge le modèle sauvegardé, probabilité en temps réel"],
               ].map(([etape, objet, detail], i) => (
                 <Revele as="li" key={etape} delai={i * 120} className="border border-trait-fort bg-fond-2 p-4">
                   <p className="label">
@@ -425,9 +425,11 @@ export default function PageInclusionFinanciere() {
               >
                 <p className="max-w-2xl">
                   Le nettoyage traite les {DONNEES.manquantsTraites} valeurs manquantes (le pays déduit de l&apos;année, la médiane
-                  pour les nombres, « Unknown » pour les autres catégories), retire les lignes hors période et normalise les
-                  noms de colonnes : {nombre(DONNEES.lignesNettoyees)} lignes, aucune valeur manquante, aucun doublon. Les défauts
-                  relevés à l&apos;exploration et corrigés :
+                  pour les nombres, « Unknown » pour les autres catégories), retire les lignes hors période et celles dont la
+                  cible est inconnue, puis normalise les noms de colonnes : {nombre(DONNEES.lignesNettoyees)} lignes, aucune
+                  valeur manquante, aucun doublon. Chaque défaut corrigé est devenu un contrôle automatique : {DONNEES.controles} sur
+                  le fichier, relancés avant l&apos;export et avant chaque entraînement, et un sur les variables du modèle, qui
+                  bloque l&apos;entraînement si l&apos;identifiant y revient. Si un défaut revient, l&apos;exécution s&apos;arrête.
                 </p>
                 <div className="mt-6 overflow-x-auto">
                   <table className="tableau min-w-[560px] max-w-3xl">
@@ -472,13 +474,25 @@ export default function PageInclusionFinanciere() {
                 id="decisions"
                 numero="04"
                 titre="Les décisions techniques"
-                resume="Modules séparés, Random Forest, Streamlit"
+                resume="Modules séparés, contrôles, modèle entraîné une fois"
               >
                 <dl className="max-w-2xl space-y-6">
                   {[
                     [
                       "Séparer les responsabilités",
-                      "Chargement et prétraitement dans src/data_processing.py, entraînement dans src/model.py, interface dans app.py.",
+                      "Chargement et prétraitement dans src/data_processing.py, contrôles dans src/quality_checks.py, évaluation et entraînement dans src/model.py, interface dans app.py.",
+                    ],
+                    [
+                      "Des contrôles plutôt que des corrections ponctuelles",
+                      "Chaque défaut corrigé devient un contrôle relancé à chaque exécution, et chaque contrôle a été vu échouer sur le défaut qu'il doit attraper.",
+                    ],
+                    [
+                      "Évaluer avant d'entraîner",
+                      "Le rappel et l'AUC sont mesurés sur un jeu de test stratifié et publiés dans models/metrics.json : la précision seule est trompeuse quand 86 % des répondants n'ont pas de compte.",
+                    ],
+                    [
+                      "Entraîner une fois",
+                      "python -m src.model contrôle, évalue, entraîne et sauvegarde le modèle ; l'application le charge au lieu de le réentraîner à chaque démarrage, et ne le réentraîne que si le CSV a changé.",
                     ],
                     [
                       "Random Forest",
@@ -505,21 +519,21 @@ export default function PageInclusionFinanciere() {
                 id="ameliorations"
                 numero="05"
                 titre="Ce que j'améliorerais"
-                resume="Évaluer, contrôler, entraîner une fois"
+                resume="Retrouver plus de comptes, harmoniser les emplois, automatiser"
               >
                 <ul className="max-w-2xl list-none space-y-4">
                   <li>
-                    <strong>Évaluer le modèle.</strong> Séparer un jeu de test et publier le rappel et l&apos;AUC, pas seulement
-                    la précision, trompeuse sur des classes aussi déséquilibrées.
+                    <strong>Retrouver plus de personnes avec un compte.</strong> Le modèle n&apos;en retrouve que{" "}
+                    {pourcent(MODELE.rappel, 0)} : pondérer les classes ou abaisser le seuil de décision, choisi sur un jeu de
+                    validation distinct du jeu de test.
                   </li>
                   <li>
-                    <strong>Transformer les corrections en contrôles automatiques</strong>, relancés à chaque exécution : aucune
-                    valeur manquante, années de 2016 à 2018, identifiant absent des variables. Puis traiter ce qui reste : modalité
-                    « 6 », cibles inconnues.
+                    <strong>Harmoniser les types d&apos;emploi entre pays</strong>, avec une table de correspondance tirée de la
+                    documentation de chaque enquête, pour pouvoir les comparer d&apos;un pays à l&apos;autre.
                   </li>
                   <li>
-                    <strong>Entraîner une fois, pas à chaque démarrage.</strong> Sauvegarder le modèle entraîné plutôt que de le
-                    réentraîner à chaque lancement de l&apos;application.
+                    <strong>Lancer les contrôles et l&apos;évaluation à chaque push</strong>, dans une intégration continue,
+                    plutôt qu&apos;à la main.
                   </li>
                 </ul>
               </Depliable>

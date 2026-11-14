@@ -1,13 +1,13 @@
 // Contenu de la page « Inclusion financière ».
 //
 // Toutes les valeurs viennent d'une exécution du 14 novembre 2026 sur le
-// dépôt local (Documents/inclusion_financiere, commit 92cfc83) : profilage des
+// dépôt local (Documents/inclusion_financiere, commit 028a3bc) : profilage des
 // fichiers data/Financial_inclusion_dataset.csv et data/financial_inclusion_clean.csv,
-// puis évaluation du modèle du dépôt (src/model.py, Random Forest de 200 arbres,
-// random_state 42) sur un jeu de test stratifié de 20 %, que le dépôt ne prévoit
-// pas : il entraîne le modèle sur toutes les données. La première version du
-// modèle, avec l'identifiant parmi les variables, est évaluée sur les mêmes
-// données nettoyées et le même jeu de test.
+// puis évaluation du modèle par le dépôt lui-même (python -m src.model : Random
+// Forest de 200 arbres, random_state 42, jeu de test stratifié de 20 %), publiée
+// dans models/metrics.json. La première version du modèle, avec l'identifiant
+// parmi les variables, est évaluée sur les mêmes données nettoyées et le même
+// jeu de test.
 //
 // Chaque pays n'a été enquêté qu'une année, et les types d'emploi ne sont pas
 // codés de la même façon partout : ils sont donc donnés pays par pays.
@@ -20,11 +20,15 @@ export const DONNEES = {
   colonnes: 13,
   manquantsTraites: 267,
   horsPeriodeRetirees: 3,
-  lignesNettoyees: 23521,
+  /** Après nettoyage : la cible y est toujours connue. */
+  lignesNettoyees: 23485,
   doublons: 0,
+  /** Lignes sans réponse sur la possession d'un compte, retirées au nettoyage. */
   ciblesInconnues: 36,
-  /** Réponses dont la possession d'un compte est connue, après nettoyage. */
-  lignesCibleConnue: 23485,
+  /** Lignes au niveau d'éducation « 6 », sans libellé, traitées comme inconnues. */
+  educationSansLibelle: 27,
+  /** Contrôles qualité automatiques relancés à chaque exécution (src/quality_checks.py). */
+  controles: 8,
   /** Lignes sans pays, rattachées à la Tanzanie par le nettoyage. */
   paysRetrouves: 14,
   tauxCompte: 0.1409,
@@ -75,23 +79,23 @@ export const INDEPENDANTS_ADDITIONNES = { part: 0.132, effectif: 6409, partTanza
 export const MODELE = {
   arbres: 200,
   lignes: 23482,
-  variables: 46,
+  variables: 45,
   test: 4697,
   testOui: 662,
-  precision: 0.8674,
+  precision: 0.8665,
   base: 0.8591,
-  auc: 0.8169,
+  auc: 0.8152,
   rappel: 0.3973,
-  precisionOui: 0.54,
+  precisionOui: 0.5356,
 };
 
 /** Première version du modèle : uniqueid encodé comme variable (8 735 colonnes one-hot). */
 export const MODELE_AVEC_ID = {
-  variables: 8781,
-  precision: 0.8857,
-  auc: 0.8471,
-  rappel: 0.3006,
-  precisionOui: 0.7289,
+  variables: 8780,
+  precision: 0.8859,
+  auc: 0.8499,
+  rappel: 0.2961,
+  precisionOui: 0.7368,
 };
 
 /** Défauts trouvés à l'exploration et corrigés dans le dépôt. */
@@ -116,17 +120,21 @@ export const CORRECTIONS = [
       "le fichier donnait 73 % d'urbains, moins souvent équipés d'un compte, d'un téléphone et d'un diplôme que les « ruraux » ; le rapport FinScope Tanzania 2017 donne 34 % d'urbains et 66 % de ruraux. Les deux libellés sont échangés : 27 % d'urbains, qui ont désormais plus souvent un compte, comme dans les autres pays",
   },
   {
+    constat: "Cible inconnue",
+    detail: "36 lignes sans réponse sur la possession d'un compte : retirées, elles ne servaient ni à entraîner ni à évaluer le modèle",
+  },
+  {
+    constat: "Niveau d'éducation « 6 »",
+    detail: "27 lignes avec une modalité sans libellé ni documentation : traitée comme inconnue, elle n'apparaît plus dans le formulaire",
+  },
+  {
     constat: "Identifiant parmi les variables",
-    detail: "uniqueid encodé en 8 735 colonnes one-hot : exclu du modèle, qui passe de 8 781 à 46 variables",
+    detail: "uniqueid encodé en 8 735 colonnes one-hot : exclu du modèle, qui passe de 8 780 à 45 variables",
   },
 ];
 
 /** Ce que le profilage du fichier nettoyé montre encore. */
 export const ANOMALIES = [
-  {
-    constat: "Cible inconnue",
-    detail: "36 lignes « Unknown » pour la possession d'un compte, écartées au moment de l'entraînement",
-  },
   {
     constat: "Un pays, une année",
     detail:
@@ -137,7 +145,10 @@ export const ANOMALIES = [
     detail:
       "ni agriculture ni emploi public en Tanzanie et en Ouganda, « sans revenu » seulement chez eux, 27 % d'« autres revenus » en Ouganda : les types d'emploi ne se comparent qu'à l'intérieur d'un pays",
   },
-  { constat: "Niveau d'éducation « 6 »", detail: "une modalité sans libellé, à côté des niveaux nommés" },
+  {
+    constat: "Taille du foyer en Tanzanie",
+    detail: "83 % des foyers de 0 à 2 personnes, contre 16 à 31 % ailleurs, et les 36 foyers de taille 0 sont tous tanzaniens : la notion de foyer n'est sans doute pas la même",
+  },
   {
     constat: "Noms de colonnes d'origine",
     detail: "fautes conservées après le passage en snake_case : level_of_educuation, the_relathip_with_head",
