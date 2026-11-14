@@ -193,6 +193,14 @@ export const TELEPHONE = {
   /** Parmi celles et ceux qui ont un téléphone, part ayant un compte. */
   femmesAvecTelephone: 0.1467,
   hommesAvecTelephone: 0.2312,
+  /**
+   * Cible d'un service bancaire sur mobile : répondants avec téléphone et sans compte
+   * (14 225 sur 23 482), et parmi eux la part de femmes et de ruraux. Parts de
+   * l'échantillon : le fichier n'a pas les pondérations de l'enquête.
+   */
+  telephoneSansCompte: 0.6058,
+  cibleFemmes: 0.5859,
+  cibleRuraux: 0.7513,
 };
 
 /** Avec et sans téléphone, par pays (même ordre que PAR_PAYS). */

@@ -22,6 +22,7 @@ import {
 } from "@/contenu/prix-carburants";
 import { JOURS_PRIX_RECENT, euros, jourDonnees } from "@/lib/carburant-commun";
 import {
+  economiesProximite,
   lireMedianesQuotidiennes,
   lireSurcoutAutoroute,
   lireMetadataCarburant,
@@ -85,6 +86,8 @@ export default function PagePrixCarburants() {
   const surcoutPendantHausse = surcoutGazole.points.filter((p) => p.jour.startsWith(anneeHausse));
   const surcoutMin = surcoutPendantHausse.reduce((a, b) => (b.prix < a.prix ? b : a));
   const sansSurcout = surcouts.filter((s) => s.departements < DEPARTEMENTS_MIN_SURCOUT);
+  // Cas d'usage : ce que coûte de ne pas chercher la station la moins chère, aux prix du jour.
+  const proximite = economiesProximite(stations, 1, RAYON_INITIAL);
   const signe = (v: number, decimales = 3) => (v > 0 ? "+" : "") + euros(v, decimales);
 
   return (
@@ -372,6 +375,45 @@ qualify prix_litre is distinct from lag(prix_litre) over (
                 </p>
               </div>
             </div>
+          </section>
+
+          <section className="border-t border-trait py-24">
+            <Chapitre numero="Cas d'usage" titre="Une politique carburant pour une flotte">
+              <p>
+                Pour une entreprise qui fait rouler des véhicules, deux règles simples se chiffrent avec ces données. Le gain
+                se calcule ensuite d&apos;une multiplication : volume annuel × écart.
+              </p>
+            </Chapitre>
+            <ul className="mt-14 grid gap-x-16 gap-y-12 border-t border-trait pt-8 lg:grid-cols-2">
+              <li>
+                <p className="label">Règle 1 · Pas de plein sur autoroute</p>
+                <p className="mt-4 font-donnees text-5xl leading-none text-encre">+{euros(surcoutGazole.ecart, 2)}</p>
+                <p className="label mt-3">par litre de gazole sur autoroute</p>
+                <p className="mt-3 max-w-md text-encre-2">
+                  À date et département égaux, en médiane sur {periodeSurcout}, et plus cher sur autoroute dans{" "}
+                  {pourcent(surcoutGazole.partCasPlusChere, 0)} des comparaisons. Soit{" "}
+                  <strong className="font-medium text-encre">{euros(surcoutGazole.ecart * 1000, 0)} pour 1 000 litres</strong>{" "}
+                  faits avant ou après l&apos;autoroute plutôt que dessus.
+                </p>
+              </li>
+              <li>
+                <p className="label">Règle 2 · La moins chère à moins de {proximite.rayonKm} km</p>
+                <p className="mt-4 font-donnees text-5xl leading-none text-encre">{euros(proximite.ecartMedian, 3)}</p>
+                <p className="label mt-3">d&apos;économie médiane par litre de gazole</p>
+                <p className="mt-3 max-w-md text-encre-2">
+                  Sur {nombre(proximite.stations)} stations hors autoroute, aux prix du {jour}.{" "}
+                  {pourcent(proximite.partAuDessusSeuil, 0)} d&apos;entre elles sont au moins {euros(proximite.seuil, 2)} plus
+                  chères que la moins chère de leur rayon : au moins{" "}
+                  <strong className="font-medium text-encre">{euros(proximite.seuil * 1000, 0)} pour 1 000 litres</strong> dans ces
+                  cas-là. C&apos;est ce que fait la recherche de cette page.
+                </p>
+              </li>
+            </ul>
+            <p className="mt-12 max-w-2xl text-sm text-encre-3">
+              Limites : ce sont des écarts médians, pas une promesse d&apos;économie. Un détour coûte du carburant et du temps,
+              et les prix de proximité sont ceux d&apos;un jour, quand le surcoût autoroute est une médiane sur{" "}
+              {periodeSurcout}.
+            </p>
           </section>
 
           {/* Sous le capot */}

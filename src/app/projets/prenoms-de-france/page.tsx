@@ -20,6 +20,7 @@ import {
   lireMetadata,
   lireMixite,
   lirePaysage,
+  lireUsages,
   type FichierSeries,
 } from "@/lib/prenoms";
 import { initiale as initialeSansAccent, sansAccents, type LigneDiversite, type Sexe } from "@/lib/prenoms-commun";
@@ -120,6 +121,11 @@ export default function PagePrenoms() {
   const variation = (sexe: Sexe, colonne: "orthographes" | "formes") =>
     effetAccents.diversite[sexe].get(ANNEE_RETOUR_ACCENTS)![colonne] - effetAccents.diversite[sexe].get(ANNEE_RETOUR_ACCENTS - 1)![colonne];
   const signe = (n: number) => (n > 0 ? `+${nombre(n)}` : n < 0 ? `−${nombre(-n)}` : "0");
+  // Cas d'usage, calculés au build sur les séries (orthographes exactes).
+  const usages = lireUsages(derniere, ["NATHALIE", "KEVIN", "MARIE"]);
+  const [nathalie, kevinAge, marieAge] = usages.fenetreAge.exemples;
+  const couverture1970 = { F: usages.couverture(1970, "F"), M: usages.couverture(1970, "M") };
+  const couvertureFin = { F: usages.couverture(derniere, "F"), M: usages.couverture(derniere, "M") };
   const ecartDebut = ecart[0];
   const ecartFin = ecart[ecart.length - 1];
 
@@ -554,6 +560,72 @@ export default function PagePrenoms() {
                 />
               </Figure>
             </div>
+          </section>
+
+          <section className="border-t border-trait py-24">
+            <Chapitre numero="Cas d'usage" titre="Ce que le fichier vaut pour une entreprise">
+              <p>
+                Le même fichier répond à deux questions concrètes : que déduire d&apos;un prénom dans un fichier clients, et
+                combien de prénoms garder en stock.
+              </p>
+            </Chapitre>
+            <div className="mt-14 grid gap-16 lg:grid-cols-2">
+              <div>
+                <p className="label mb-6">Enrichir un fichier clients</p>
+                <ul className="grid gap-y-10 border-t border-trait pt-8">
+                  <li>
+                    <p className="font-donnees text-4xl leading-none text-encre">{pourcent(usages.erreurSexe.adultes)}</p>
+                    <p className="label mt-3">d&apos;erreur en déduisant la civilité du prénom</p>
+                    <p className="mt-3 max-w-md text-encre-2">
+                      Pour les adultes de 18 à 75 ans (nés de {usages.adultes.debut} à {usages.adultes.fin}), en donnant à chaque
+                      orthographe son sexe le plus fréquent. Chez les mineurs (nés depuis {usages.erreurSexe.debutMineurs}),{" "}
+                      {pourcent(usages.erreurSexe.mineurs)} : les prénoms donnés aux deux sexes progressent (histoire 3).
+                    </p>
+                  </li>
+                  <li>
+                    <p className="font-donnees text-4xl leading-none text-encre">{pourcent(usages.fenetreAge.partDixAns, 0)}</p>
+                    <p className="label mt-3">des adultes ont un prénom qui les date à 10 ans près</p>
+                    <p className="mt-3 max-w-md text-encre-2">
+                      La moitié centrale de leurs homonymes est née sur 10 années au plus : {nathalie.prenom}{" "}
+                      {nathalie.q1}-{nathalie.q3}, {kevinAge.prenom} {kevinAge.q1}-{kevinAge.q3}. Assez pour une tranche
+                      d&apos;âge de campagne. {marieAge.prenom}, en revanche, s&apos;étale de {marieAge.q1} à {marieAge.q3} : le
+                      prénom ne date pas tout le monde.
+                    </p>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <p className="label mb-6">Produits personnalisés : quel stock pré-imprimer ?</p>
+                <ul className="grid gap-y-10 border-t border-trait pt-8">
+                  <li>
+                    <p className="font-donnees text-4xl leading-none text-encre">
+                      {pourcent(couverture1970.F.top100, 0)} → {pourcent(couvertureFin.F.top100, 0)}
+                    </p>
+                    <p className="label mt-3">des filles couvertes par les 100 prénoms les plus donnés, en 1970 puis en {derniere}</p>
+                    <p className="mt-3 max-w-md text-encre-2">
+                      Chez les garçons, {pourcent(couverture1970.M.top100, 0)} puis {pourcent(couvertureFin.M.top100, 0)}. Un
+                      présentoir de 100 prénoms laisse aujourd&apos;hui plus de la moitié des enfants sans le leur.
+                    </p>
+                  </li>
+                  <li>
+                    <p className="font-donnees text-4xl leading-none text-encre">
+                      {nombre(couverture1970.F.pour80)} → {nombre(couvertureFin.F.pour80)}
+                    </p>
+                    <p className="label mt-3">prénoms pour couvrir 80 % des filles, en 1970 puis en {derniere}</p>
+                    <p className="mt-3 max-w-md text-encre-2">
+                      Et de {nombre(couverture1970.M.pour80)} à {nombre(couvertureFin.M.pour80)} pour les garçons. Un stock
+                      pré-imprimé ne suit plus : la diversité des prénoms plaide pour l&apos;impression à la demande.
+                    </p>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <p className="mt-12 max-w-2xl text-sm text-encre-3">
+              Limites : les prénoms trop rares ne sont pas publiés (environ une naissance sur treize) et restent sans réponse ;
+              les parts portent sur les naissances publiées. Le calcul ignore la mortalité et les personnes nées à
+              l&apos;étranger. Déduire le sexe ou l&apos;âge d&apos;un client est un traitement de données personnelles,
+              soumis au RGPD : il doit être annoncé et justifié.
+            </p>
           </section>
 
           {/* Sous le capot */}

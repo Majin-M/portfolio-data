@@ -8,6 +8,7 @@ import { join } from "node:path";
 import {
   CARBURANTS,
   JOURS_PRIX_RECENT,
+  distanceKm,
   lireStations,
   type FichierPrix,
   type Metadata,
@@ -112,6 +113,68 @@ export function lireSurcoutAutoroute(): SurcoutCarburant[] {
       stations: j[i.departements] as number,
     })),
   }));
+}
+
+export type EconomieProximite = {
+  carburantId: number;
+  nom: string;
+  rayonKm: number;
+  /** Stations hors autoroute qui ont au moins une autre station dans le rayon. */
+  stations: number;
+  /** Écart entre le prix d'une station et le moins cher du rayon, en euros par litre. */
+  ecartMedian: number;
+  ecartQ3: number;
+  /** Part des stations à au moins `seuil` euros du moins cher du rayon. */
+  seuil: number;
+  partAuDessusSeuil: number;
+};
+
+function quantile(tri: number[], q: number): number {
+  const pos = (tri.length - 1) * q;
+  const [bas, haut] = [Math.floor(pos), Math.ceil(pos)];
+  return tri[bas] + (tri[haut] - tri[bas]) * (pos - bas);
+}
+
+/**
+ * Ce que coûte de ne pas chercher : pour chaque station hors autoroute, l'écart
+ * entre son prix et le moins cher des stations à moins de `rayonKm` (elle
+ * comprise), sur les prix de 7 jours ou moins et non suspects.
+ */
+export function economiesProximite(stations: Station[], carburantId: number, rayonKm = 10, seuil = 0.1): EconomieProximite {
+  const points = stations
+    .filter((s) => !s.autoroute && Number.isFinite(s.latitude) && Number.isFinite(s.longitude))
+    .flatMap((s) => {
+      const p = s.prix.find((x) => x.carburantId === carburantId && !x.suspect && x.ageJours <= JOURS_PRIX_RECENT);
+      return p ? [{ lat: s.latitude, lon: s.longitude, prix: p.prix }] : [];
+    })
+    .sort((a, b) => a.lat - b.lat);
+  // Un degré de latitude fait environ 111 km : on ne compare que la bande utile.
+  const bande = rayonKm / 110;
+  const ecarts: number[] = [];
+  let debut = 0;
+  for (const p of points) {
+    while (points[debut].lat < p.lat - bande) debut++;
+    let [moinsCher, voisines] = [p.prix, 0];
+    for (let k = debut; k < points.length && points[k].lat <= p.lat + bande; k++) {
+      const q = points[k];
+      if (q === p || distanceKm(p.lat, p.lon, q.lat, q.lon) > rayonKm) continue;
+      voisines++;
+      moinsCher = Math.min(moinsCher, q.prix);
+    }
+    if (voisines > 0) ecarts.push(p.prix - moinsCher);
+  }
+  const tri = ecarts.sort((a, b) => a - b);
+  return {
+    carburantId,
+    nom: CARBURANTS[carburantId],
+    rayonKm,
+    stations: tri.length,
+    ecartMedian: quantile(tri, 0.5),
+    ecartQ3: quantile(tri, 0.75),
+    seuil,
+    // Petite tolérance : les prix au millième ne tombent pas pile sur le seuil en flottants.
+    partAuDessusSeuil: tri.filter((e) => e >= seuil - 1e-9).length / tri.length,
+  };
 }
 
 export type MedianeCarburant = { carburantId: number; nom: string; mediane: number; stations: number };

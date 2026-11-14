@@ -284,6 +284,101 @@ export function lireMixite(bascules: string[]): Mixite {
   };
 }
 
+export type Usages = {
+  /** Années de naissance des adultes de 18 à 75 ans la dernière année publiée. */
+  adultes: { debut: number; fin: number; naissances: number };
+  /**
+   * Deviner le sexe par le sexe majoritaire de l'orthographe (exacte, comme dans un
+   * fichier clients) : part des naissances mal classées, chez les adultes (majorité
+   * calculée sur leurs années de naissance) et chez les mineurs (nés après les adultes).
+   */
+  erreurSexe: { adultes: number; mineurs: number; debutMineurs: number };
+  /**
+   * Âge : pour chaque orthographe, l'écart entre le premier et le troisième quartile
+   * des années de naissance de ses adultes. Part des adultes dont le prénom tient
+   * dans une fenêtre de 10 années de naissance au plus (q3 - q1 < 10), et exemples.
+   */
+  fenetreAge: { partDixAns: number; exemples: { prenom: string; q1: number; q3: number }[] };
+  /** Pour une année et un sexe : part des naissances couverte par les 100 premiers prénoms, et prénoms nécessaires pour en couvrir 80 %. */
+  couverture: (annee: number, sexe: "F" | "M") => { top100: number; pour80: number };
+};
+
+/**
+ * Usages métier, calculés au build sur les séries nationales (orthographes exactes,
+ * naissances publiées) : enrichissement d'un fichier clients (sexe et âge probables
+ * à partir du prénom) et couverture d'un stock de produits personnalisés.
+ */
+export function lireUsages(derniere: number, exemples: string[]): Usages {
+  const series = lireToutesSeries();
+  const [debut, fin] = [derniere - 75, derniere - 18];
+  const debutMineurs = fin + 1;
+
+  let [naissancesAdultes, erreursAdultes, naissancesEnfants, erreursEnfants] = [0, 0, 0, 0];
+  const fenetres: { prenom: string; tot: number; q1: number; q3: number }[] = [];
+  const parAnnee = new Map<string, number[]>();
+
+  for (const [prenom, parSexe] of Object.entries(series)) {
+    const adultes = { F: 0, M: 0 };
+    const enfants = { F: 0, M: 0 };
+    const naissancesParAnnee = new Map<number, number>();
+    for (const sexe of ["F", "M"] as const) {
+      for (const [a, n] of parSexe[sexe] ?? []) {
+        if (a >= debut && a <= fin) {
+          adultes[sexe] += n;
+          naissancesParAnnee.set(a, (naissancesParAnnee.get(a) ?? 0) + n);
+        }
+        if (a >= debutMineurs) enfants[sexe] += n;
+        const cle = `${a}|${sexe}`;
+        const liste = parAnnee.get(cle) ?? [];
+        liste.push(n);
+        parAnnee.set(cle, liste);
+      }
+    }
+    // Sexe majoritaire sur la période : les naissances de l'autre sexe sont mal classées.
+    naissancesAdultes += adultes.F + adultes.M;
+    erreursAdultes += Math.min(adultes.F, adultes.M);
+    naissancesEnfants += enfants.F + enfants.M;
+    erreursEnfants += Math.min(enfants.F, enfants.M);
+
+    const tot = adultes.F + adultes.M;
+    if (tot > 0) {
+      let cumul = 0;
+      let [q1, q3] = [0, 0];
+      for (const a of [...naissancesParAnnee.keys()].sort((x, y) => x - y)) {
+        cumul += naissancesParAnnee.get(a)!;
+        if (!q1 && cumul >= 0.25 * tot) q1 = a;
+        if (!q3 && cumul >= 0.75 * tot) q3 = a;
+      }
+      fenetres.push({ prenom, tot, q1, q3 });
+    }
+  }
+
+  const tries = new Map([...parAnnee].map(([cle, liste]) => [cle, liste.sort((a, b) => b - a)]));
+  return {
+    adultes: { debut, fin, naissances: naissancesAdultes },
+    erreurSexe: { adultes: erreursAdultes / naissancesAdultes, mineurs: erreursEnfants / naissancesEnfants, debutMineurs },
+    fenetreAge: {
+      partDixAns: fenetres.filter((f) => f.q3 - f.q1 < 10).reduce((t, f) => t + f.tot, 0) / naissancesAdultes,
+      exemples: exemples.map((p) => {
+        const f = fenetres.find((x) => x.prenom === p);
+        if (!f) throw new Error(`Prénom d'exemple absent des séries : ${p}`);
+        return { prenom: p, q1: f.q1, q3: f.q3 };
+      }),
+    },
+    couverture: (annee, sexe) => {
+      const liste = tries.get(`${annee}|${sexe}`) ?? [];
+      const total = liste.reduce((t, n) => t + n, 0);
+      let [cumul, pour80] = [0, 0];
+      for (const n of liste) {
+        cumul += n;
+        pour80 += 1;
+        if (cumul >= 0.8 * total) break;
+      }
+      return { top100: liste.slice(0, 100).reduce((t, n) => t + n, 0) / total, pour80 };
+    },
+  };
+}
+
 /** Volumes du projet Prénoms sur le chemin du flux, lus dans metadata.json. */
 export function volumesPrenoms(): Record<string, string> {
   const m = lireMetadata();

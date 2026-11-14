@@ -240,6 +240,12 @@ export default function PageInclusionFinanciere() {
               cela n&apos;explique pas tout : parmi les personnes qui en ont un, {pourcent(TELEPHONE.femmesAvecTelephone)} des
               femmes ont un compte, contre {pourcent(TELEPHONE.hommesAvecTelephone)} des hommes.
             </p>
+            <p className="mt-6 max-w-2xl text-encre-2">
+              Pour un service bancaire sur mobile, la cible se lit directement : {pourcent(TELEPHONE.telephoneSansCompte, 0)}{" "}
+              des répondants ont un téléphone mais pas de compte, dont {pourcent(TELEPHONE.cibleFemmes, 0)} de femmes et{" "}
+              {pourcent(TELEPHONE.cibleRuraux, 0)} de ruraux. C&apos;est une part de l&apos;échantillon, pas une taille de
+              marché : le fichier n&apos;a pas les pondérations de l&apos;enquête, et il date de 2016 à 2018.
+            </p>
             <p className="mt-6 max-w-2xl text-sm text-encre-3">
               Ce sont des écarts observés, pas des causes : le téléphone peut aider à ouvrir un compte comme accompagner un
               revenu qui le permet.
