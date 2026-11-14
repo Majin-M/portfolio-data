@@ -10,11 +10,12 @@ import {
   CORRECTIONS,
   DEPOT,
   DONNEES,
+  INDEPENDANTS_ADDITIONNES,
   MESURE_LE,
   MODELE,
   MODELE_AVEC_ID,
   PAR_EDUCATION,
-  PAR_EMPLOI,
+  PAR_EMPLOI_PAYS,
   PAR_PAYS,
 } from "@/contenu/inclusion-financiere";
 import { date, decimal, nombre, pourcent } from "@/lib/format";
@@ -26,6 +27,13 @@ export const metadata: Metadata = {
 };
 
 const mesureLe = date(MESURE_LE);
+
+const KENYA = 0;
+const TANZANIE = 2;
+const ligneEmploi = (label: string) => PAR_EMPLOI_PAYS.find((l) => l.label === label)!;
+const PUBLIC = ligneEmploi("Salarié du public");
+const INFORMEL = ligneEmploi("Emploi informel");
+const INDEPENDANT = ligneEmploi("Indépendant");
 
 export default function PageInclusionFinanciere() {
   return (
@@ -52,7 +60,7 @@ export default function PageInclusionFinanciere() {
             <div>
               <p className="label mb-6">Part des répondants qui ont un compte bancaire</p>
               <Barres
-                barres={PAR_PAYS.map((p) => ({ label: p.label, part: p.part, detail: `${nombre(p.effectif)} répondants` }))}
+                barres={PAR_PAYS.map((p) => ({ label: p.label, part: p.part, detail: `${nombre(p.effectif)} répondants · ${p.annee}` }))}
                 description="Part des répondants ayant un compte bancaire, par pays"
                 max={0.3}
               />
@@ -63,24 +71,81 @@ export default function PageInclusionFinanciere() {
               </div>
             </div>
           }
-          legendeVisuel={`Réponses dont la possession d'un compte est connue : ${nombre(DONNEES.lignesCibleConnue)} sur ${nombre(DONNEES.lignesNettoyees)} après nettoyage. Les ${DONNEES.paysInconnu} réponses sans pays ne figurent pas dans les barres.`}
+          legendeVisuel={`Chaque pays n'a été enquêté qu'une année : l'écart entre deux pays est aussi un écart entre deux années, et rien ne permet de les séparer. Réponses dont la possession d'un compte est connue : ${nombre(DONNEES.lignesCibleConnue)} sur ${nombre(DONNEES.lignesNettoyees)} après nettoyage. Les ${DONNEES.paysInconnu} réponses sans pays ne figurent pas dans les barres.`}
         />
 
         <Conteneur>
           {/* L'histoire */}
           <section className="border-t border-trait py-24">
             <Chapitre numero="L'histoire · 1" titre="L'emploi et l'éducation d'abord">
-              <p>Avoir un compte dépend moins du pays que de la situation de la personne.</p>
+              <p>
+                Dans chaque pays, avoir un compte dépend surtout de la situation de la personne. Mais les pays ne se comparent
+                pas terme à terme : les types d&apos;emploi n&apos;y sont pas codés de la même façon.
+              </p>
             </Chapitre>
-            <div className="mt-14 grid gap-14 lg:grid-cols-2">
-              <Figure numero="01" titre="Par type d'emploi" source="financial_inclusion_clean.csv">
-                <Barres
-                  barres={PAR_EMPLOI}
-                  description="Part des répondants ayant un compte bancaire, par type d'emploi"
-                  max={1}
-                />
+            <div className="mt-14">
+              <Figure
+                numero="01"
+                titre="Par type d'emploi, pays par pays"
+                source="financial_inclusion_clean.csv"
+                legende="Part des répondants qui ont un compte, et sous elle le nombre de répondants. Un tiret : la catégorie n'existe pas dans le fichier de ce pays. Ne figurent pas les personnes qui vivent d'aides publiques (7 à 91 répondants selon le pays), ni les réponses « ne sait pas » ou inconnues."
+              >
+                <div className="overflow-x-auto">
+                  <table className="tableau min-w-[640px]" aria-label="Part des répondants ayant un compte bancaire, par type d'emploi et par pays">
+                    <thead>
+                      <tr>
+                        <th scope="col">Type d&apos;emploi</th>
+                        {PAR_PAYS.map((p) => (
+                          <th key={p.label} scope="col" className="num">
+                            {p.label} · {p.annee}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {PAR_EMPLOI_PAYS.map((l) => (
+                        <tr key={l.label}>
+                          <th scope="row" className="!font-texte !text-sm !normal-case !tracking-normal text-encre-2">
+                            {l.label}
+                          </th>
+                          {l.parts.map((part, i) => (
+                            <td key={PAR_PAYS[i].label} className="num">
+                              {part === null ? (
+                                <span className="text-encre-3">—</span>
+                              ) : (
+                                <>
+                                  <span className="text-encre">{pourcent(part, 0)}</span>
+                                  <span className="ml-auto mt-1 block h-1 bg-fond-2" aria-hidden="true">
+                                    <span className="block h-full bg-accent" style={{ width: `${part * 100}%` }} />
+                                  </span>
+                                  <span className="mt-1 block text-xs text-encre-3">{nombre(l.effectifs[i]!)}</span>
+                                </>
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </Figure>
-              <Figure numero="02" titre="Par niveau d'éducation" source="financial_inclusion_clean.csv">
+            </div>
+            <p className="mt-10 max-w-2xl text-encre-2">
+              Au Kenya, {pourcent(PUBLIC.parts[KENYA]!, 0)} des salariés du public ont un compte, contre{" "}
+              {pourcent(INFORMEL.parts[KENYA]!, 0)} des personnes en emploi informel. Additionner les pays brouillerait la
+              lecture : tous pays confondus, {pourcent(INDEPENDANTS_ADDITIONNES.part, 0)} des indépendants ont un compte, mais
+              ils sont {pourcent(INDEPENDANT.parts[KENYA]!, 0)} au Kenya et {pourcent(INDEPENDANT.parts[TANZANIE]!, 0)} en
+              Tanzanie, qui fournit à elle seule {pourcent(INDEPENDANTS_ADDITIONNES.partTanzanie, 0)} des indépendants. La
+              catégorie « salarié du public » n&apos;existe qu&apos;au Kenya et au Rwanda, les deux pays où
+              les comptes sont les plus fréquents ; « sans revenu », qu&apos;en Tanzanie et en Ouganda.
+            </p>
+            <div className="mt-14 max-w-3xl">
+              <Figure
+                numero="02"
+                titre="Par niveau d'éducation, tous pays confondus"
+                source="financial_inclusion_clean.csv"
+                legende="Les cinq niveaux existent dans les quatre pays."
+              >
                 <Barres
                   barres={PAR_EDUCATION}
                   description="Part des répondants ayant un compte bancaire, par niveau d'éducation"
@@ -89,8 +154,7 @@ export default function PageInclusionFinanciere() {
               </Figure>
             </div>
             <p className="mt-10 max-w-2xl text-encre-2">
-              {pourcent(PAR_EMPLOI[0].part)} des salariés du public ont un compte, contre {pourcent(PAR_EMPLOI[4].part)} des
-              personnes en emploi informel. Sans instruction, la part tombe à {pourcent(PAR_EDUCATION[4].part)}.
+              Sans instruction, la part tombe à {pourcent(PAR_EDUCATION[4].part)}.
             </p>
           </section>
 
@@ -259,7 +323,7 @@ export default function PageInclusionFinanciere() {
               <Depliable id="dataset" numero="02" titre="Le dataset" resume="Enquêtes FinScope, quatre pays, 2016 à 2018">
                 <p className="max-w-2xl">
                   Réponses aux enquêtes <strong>FinScope</strong> menées au Kenya, au Rwanda, en Tanzanie et en Ouganda : pays,
-                  année, type de localisation, accès au téléphone, taille du foyer, âge (moyenne de {decimal(DONNEES.ageMoyen, 1)}{" "}
+                  année (une seule par pays), type de localisation, accès au téléphone, taille du foyer, âge (moyenne de {decimal(DONNEES.ageMoyen, 1)}{" "}
                   ans), genre, relation avec le chef du foyer, situation matrimoniale, niveau d&apos;éducation, type
                   d&apos;emploi, et la cible : la possession d&apos;un compte bancaire.
                 </p>
