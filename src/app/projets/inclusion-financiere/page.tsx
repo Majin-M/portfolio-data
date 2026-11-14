@@ -474,7 +474,7 @@ export default function PageInclusionFinanciere() {
                 id="decisions"
                 numero="04"
                 titre="Les décisions techniques"
-                resume="Modules séparés, contrôles, modèle entraîné une fois"
+                resume="Modules séparés, contrôles, intégration continue, modèle entraîné une fois"
               >
                 <dl className="max-w-2xl space-y-6">
                   {[
@@ -489,6 +489,10 @@ export default function PageInclusionFinanciere() {
                     [
                       "Évaluer avant d'entraîner",
                       "Le rappel et l'AUC sont mesurés sur un jeu de test stratifié et publiés dans models/metrics.json : la précision seule est trompeuse quand 86 % des répondants n'ont pas de compte.",
+                    ],
+                    [
+                      "Tout relancer à chaque push",
+                      "Une intégration continue (GitHub Actions) rejoue le nettoyage depuis le CSV brut et exige le même CSV nettoyé, relance les contrôles, puis évalue le modèle et exige les mêmes mesures que celles publiées.",
                     ],
                     [
                       "Entraîner une fois",
@@ -519,7 +523,7 @@ export default function PageInclusionFinanciere() {
                 id="ameliorations"
                 numero="05"
                 titre="Ce que j'améliorerais"
-                resume="Retrouver plus de comptes, harmoniser les emplois, automatiser"
+                resume="Retrouver plus de comptes, harmoniser les emplois"
               >
                 <ul className="max-w-2xl list-none space-y-4">
                   <li>
@@ -530,10 +534,6 @@ export default function PageInclusionFinanciere() {
                   <li>
                     <strong>Harmoniser les types d&apos;emploi entre pays</strong>, avec une table de correspondance tirée de la
                     documentation de chaque enquête, pour pouvoir les comparer d&apos;un pays à l&apos;autre.
-                  </li>
-                  <li>
-                    <strong>Lancer les contrôles et l&apos;évaluation à chaque push</strong>, dans une intégration continue,
-                    plutôt qu&apos;à la main.
                   </li>
                 </ul>
               </Depliable>

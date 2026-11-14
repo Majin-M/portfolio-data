@@ -207,6 +207,14 @@ export const USAGES: Usage[] = [
     preuve: `${I}/notebooks/EDA.ipynb`,
     statut: "projet",
   },
+  {
+    outil: "GitHub Actions",
+    projet: "inclusion-financiere",
+    etapes: ["qualite"],
+    usage: "à chaque push : nettoyage rejoué depuis le CSV brut, contrôles qualité, mesures du modèle comparées à celles publiées",
+    preuve: `${I}/.github/workflows/controles.yml`,
+    statut: "projet",
+  },
 ];
 
 /**

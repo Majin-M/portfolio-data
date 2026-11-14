@@ -187,6 +187,23 @@ for (const [nom, options, clair] of [
   test = "prénoms · interactions";
   await page.goto(BASE + "/projets/prenoms-de-france/", { waitUntil: "networkidle" });
   const affiche = () => page.locator("p.font-donnees.text-2xl").first().innerText();
+  // Attend que le prénom demandé s'affiche (10 s au plus) plutôt qu'un délai fixe :
+  // sur une machine chargée, 1,2 s ne suffisait pas et le test lisait encore la
+  // recherche précédente. Retourne le prénom finalement affiché.
+  const attendreAffiche = async (attendu) => {
+    const limite = Date.now() + 10000;
+    let a = await affiche();
+    while (a !== attendu && Date.now() < limite) {
+      await page.waitForTimeout(200);
+      a = await affiche();
+    }
+    return a;
+  };
+  const chercher = async (saisie, attendu) => {
+    await page.fill("#prenom", saisie);
+    await page.press("#prenom", "Enter");
+    return attendreAffiche(attendu);
+  };
   const cas = [
     ["lea", "LÉA"],
     ["élodie", "ÉLODIE"],
@@ -195,18 +212,13 @@ for (const [nom, options, clair] of [
     ["A'LIA", "A'LIA"],
   ];
   for (const [saisie, attendu] of cas) {
-    await page.fill("#prenom", saisie);
-    await page.press("#prenom", "Enter");
-    await page.waitForTimeout(1200);
-    const a = await affiche();
+    const a = await chercher(saisie, attendu);
     if (a !== attendu) noter(test, `« ${saisie} » affiche ${a}, attendu ${attendu}`);
   }
   // Orthographes : en 2010, l'INSEE fait passer un tiers des LÉA vers LEA. Toutes
   // orthographes additionnées, la courbe ne chute pas ; LÉA seule, elle chute.
   await essayer(test, "orthographes additionnées", async () => {
-    await page.fill("#prenom", "léa");
-    await page.press("#prenom", "Enter");
-    await page.waitForTimeout(1200);
+    await chercher("léa", "LÉA");
     const recherche = page.locator("figure", { has: page.locator("#prenom") });
     const naissances = async (annee) => {
       const texte = await recherche.locator("tr", { has: page.locator(`th:text-is("${annee}")`) }).locator("td").first().textContent();
@@ -221,14 +233,12 @@ for (const [nom, options, clair] of [
     await page.getByRole("button", { name: "Toutes les orthographes" }).click();
     // Une orthographe sans accent choisie dans la liste s'affiche telle quelle.
     await recherche.getByRole("button", { name: "LEA", exact: true }).click();
-    await page.waitForTimeout(800);
-    if ((await affiche()) !== "LEA") noter(test, `clic sur LEA : ${await affiche()} affiché`);
+    const lea = await attendreAffiche("LEA");
+    if (lea !== "LEA") noter(test, `clic sur LEA : ${lea} affiché`);
   });
   // Sexe minoritaire : montré comme un fait (« 0,0060 % des KEVIN »), sous les filles.
   await essayer(test, "part du sexe minoritaire", async () => {
-    await page.fill("#prenom", "kevin");
-    await page.press("#prenom", "Enter");
-    await page.waitForTimeout(1200);
+    await chercher("kevin", "KEVIN");
     const resume = await page
       .locator("figure", { has: page.locator("#prenom") })
       .locator("li", { hasText: "naissances publiées" })
