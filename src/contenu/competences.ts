@@ -69,7 +69,7 @@ export const USAGES: Usage[] = [
     outil: "dbt",
     projet: "prenoms-de-france",
     etapes: ["transformation", "qualite"],
-    usage: "1 modèle de staging, 3 marts, 39 tests dont 11 tests singuliers",
+    usage: "1 modèle de staging, 3 marts, 40 tests dont 12 tests singuliers",
     preuve: `${P}/dbt`,
     statut: "projet",
   },
@@ -387,7 +387,7 @@ export const PARCOURS: Jalon[] = [
     type: "projet",
     titre: "Prénoms de France",
     lieu: "projet publié",
-    detail: "pipeline batch, dbt et DuckDB, 39 tests",
+    detail: "pipeline batch, dbt et DuckDB, 40 tests",
     href: "/projets/prenoms-de-france",
   },
   {

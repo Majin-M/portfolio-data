@@ -29,7 +29,7 @@ export const PROJETS: Projet[] = [
     id: "prenoms-de-france",
     numero: "01",
     titre: "Prénoms de France",
-    resume: "126 ans de naissances : ingestion traçable, modèle en couches, 39 tests de qualité, séries publiées sur ce site.",
+    resume: "126 ans de naissances : ingestion traçable, modèle en couches, 40 tests de qualité, séries publiées sur ce site.",
     competence: "Batch ETL, modélisation en couches, qualité des données",
     statut: "publié",
     href: "/projets/prenoms-de-france",

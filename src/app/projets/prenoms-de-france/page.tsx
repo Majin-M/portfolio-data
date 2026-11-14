@@ -25,7 +25,7 @@ import { sansAccents, type LigneDiversite, type Sexe } from "@/lib/prenoms-commu
 export const metadata: Metadata = {
   title: "Prénoms de France, 1900-2025",
   description:
-    "Pipeline Python, DuckDB et dbt sur le fichier des prénoms de l'INSEE : 126 ans de naissances, 39 tests de qualité, séries interactives.",
+    "Pipeline Python, DuckDB et dbt sur le fichier des prénoms de l'INSEE : 126 ans de naissances, 40 tests de qualité, séries interactives.",
 };
 
 const PRENOM_INITIAL = "STEVEN";
@@ -465,9 +465,9 @@ export default function PagePrenoms() {
                 </p>
               </Depliable>
 
-              <Depliable id="qualite" numero="04" titre="La qualité" resume="39 tests dbt, chacun vu en échec au moins une fois">
+              <Depliable id="qualite" numero="04" titre="La qualité" resume="40 tests dbt, chacun vu en échec au moins une fois">
                 <p className="max-w-2xl">
-                  28 tests génériques (<code>not_null</code>, <code>unique</code>, <code>accepted_values</code>), 10 tests
+                  28 tests génériques (<code>not_null</code>, <code>unique</code>, <code>accepted_values</code>), 11 tests
                   singuliers bloquants et 1 avertissement. Chaque particularité découverte pendant l&apos;exploration est devenue
                   un test singulier, et chacun a été lancé une fois sur des données volontairement faussées : un test mal écrit
                   peut passer à tous les coups.
@@ -485,6 +485,7 @@ export default function PagePrenoms() {
                       {[
                         ["Tous les effectifs sont des multiples de 5, minimum 5", "assert_naissances_multiples_de_5", "bloquant"],
                         ["Aucun doublon sur prénom, sexe, année, niveau, zone", "assert_grain_unique", "bloquant"],
+                        ["Rang numéroté de 1 à n, dans l'ordre des effectifs", "assert_rang_ordonne_par_effectif", "bloquant"],
                         ["126 années continues depuis 1900", "assert_annees_continues_depuis_1900", "bloquant"],
                         ["Chaque zone couverte chaque année, Mayotte à partir de 2012", "assert_couverture_zones", "bloquant"],
                         ["Le code géographique correspond à son niveau", "assert_geo_code_coherent_avec_niveau", "bloquant"],
