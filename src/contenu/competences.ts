@@ -302,7 +302,7 @@ export const CERTIFICATIONS = [
   {
     organisme: "Scholia",
     intitule: "Titre professionnel Concepteur Développeur d'Applications",
-    detail: "RNCP 37873 · niveau 6 (bac+3) · résultat attendu",
+    detail: "RNCP 37873 · niveau 6 (bac+3) · obtenu",
     annee: "2026",
     couvre: "applications sécurisées en couches, déploiement dans une démarche DevOps",
   },
@@ -372,7 +372,7 @@ export const PARCOURS: Jalon[] = [
     type: "formation",
     titre: "Titre professionnel Concepteur Développeur d'Applications",
     lieu: "Scholia, Thiais",
-    detail: "RNCP 37873, niveau 6, résultat attendu : applications Symfony et JavaScript, démarche DevOps",
+    detail: "RNCP 37873, niveau 6, obtenu : applications Symfony et JavaScript, démarche DevOps",
   },
   {
     debut: "2026",
