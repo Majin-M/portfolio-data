@@ -364,7 +364,7 @@ export const PARCOURS: Jalon[] = [
     type: "expérience",
     titre: "Data Manager, cabinet d'avocats PENA",
     lieu: "Pointe-Noire, Congo",
-    detail: "base SQL Server alimentée depuis Excel (Python, BULK INSERT), tableaux de bord Tableau, dictionnaire de données",
+    detail: "base SQL Server alimentée depuis Excel (nettoyage en Python), tableaux de bord Tableau, dictionnaire de données",
   },
   {
     debut: "2025",
