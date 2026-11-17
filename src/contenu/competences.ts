@@ -289,7 +289,7 @@ export const IDENTITE = {
   titre: "Data Engineer",
   phrase: "Pipelines fiables, testés et documentés.",
   /** Photo dans public/ (par exemple "/photo.jpg") ; sans photo, les initiales. */
-  photo: "/photo.jpg" as string | null,
+  photo: "/photo.png" as string | null,
   initiales: "MSM",
   liens: [
     { label: "GitHub", href: "https://github.com/Majin-M" },

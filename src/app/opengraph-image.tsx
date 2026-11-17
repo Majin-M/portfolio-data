@@ -19,7 +19,7 @@ const ACCENT = "#d4703f";
 
 export default async function Image() {
   const photo = IDENTITE.photo
-    ? `data:image/jpeg;base64,${await readFile(path.join(process.cwd(), "public", IDENTITE.photo), "base64")}`
+    ? `data:image/${path.extname(IDENTITE.photo) === ".png" ? "png" : "jpeg"};base64,${await readFile(path.join(process.cwd(), "public", IDENTITE.photo), "base64")}`
     : null;
 
   return new ImageResponse(
